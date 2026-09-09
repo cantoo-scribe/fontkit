@@ -77,6 +77,36 @@ describe('shaping', function () {
     test('should adjust attached marks if base is adjusted', 'amiri/amiri-regular.ttf', 'لَكنت', '2054+1810|2133+500|2300+1206|427@-96,0+0|5988+380|2322+360');
   });
 
+  describe('hebrew shaper', function () {
+    test('should shape plain Hebrew consonants',
+      'Hebrew/TaameyFrankCLM.ttf', 'קול',
+      '40+901|33+484|50+997');
+
+    // HB hebrew-diacritics: GPOS mark-to-base nikud
+    test('should position Hebrew nikud via GPOS',
+      'Hebrew/TaameyFrankCLM.ttf', 'הֲבֵל',
+      '40+901|15@512,0+0|29+967|13@600,0+0|32+1071');
+
+    // Font has GPOS mark → no fallback composition; ccmp handles dagesh
+    test('should let the font handle dagesh composition via GSUB',
+      'Hebrew/TaameyFrankCLM.ttf', 'בַּבֹּקֶר',
+      '51+883|16@618,0+0|50+997|19@422,0+0|71+967|17@505,0+0|71+967');
+
+    // reorder_marks_hebrew: meteg next to patah
+    test('should reorder patah/sheva/meteg per HarfBuzz',
+      'Hebrew/TaameyFrankCLM.ttf', 'אְַֽ',
+      '11@506,0+0|22@744,0+0|17@739,0+0|28+1048');
+
+    test('should reorder qamats/hiriq/meteg per HarfBuzz',
+      'Hebrew/TaameyFrankCLM.ttf', 'אִָֽ',
+      '14@506,0+0|22@744,0+0|18@740,0+0|28+1048');
+
+    // Non-canonical mark order (codepoint identity, not CCC)
+    test('should reorder marks regardless of input order',
+      'Hebrew/TaameyFrankCLM.ttf', String.fromCodePoint(0x05D0, 0x05B7, 0x05B0, 0x05BD),
+      '11@506,0+0|22@744,0+0|17@739,0+0|28+1048');
+  });
+
   describe('hangul shaper', function () {
     let font = fontkit.openSync(new URL('data/NotoSansCJK/NotoSansCJKkr-Regular.otf', import.meta.url));
 
