@@ -51,20 +51,36 @@ const NAMES = [
   'designerURL',
   'license',
   'licenseURL',
-  null, // reserved
+  null, // reserved (nameID 15)
   'preferredFamily',
   'preferredSubfamily',
   'compatibleFull',
   'sampleText',
   'postscriptCIDFontName',
   'wwsFamilyName',
-  'wwsSubfamilyName'
+  'wwsSubfamilyName',
+  'lightBackgroundPalette',
+  'darkBackgroundPalette',
+  'variationsPostScriptNamePrefix',
 ];
 
+function pushEnRecord(out, nameID, string) {
+  if (typeof string !== 'string') return;
+
+  out.push({
+    platformID: 3,
+    encodingID: 1,
+    languageID: 0x409,
+    nameID,
+    length: string.length * 2,
+    string
+  });
+}
+
 NameTable.process = function(_stream) {
-  var records = {};
+  let records = {fontFeatures: {}};
+
   for (let record of this.records) {
-    // find out what language this is for
     let language = LANGUAGES[record.platformID][record.languageID];
 
     if (language == null && this.langTags != null && record.languageID >= 0x8000) {
@@ -75,19 +91,21 @@ NameTable.process = function(_stream) {
       language = record.platformID + '-' + record.languageID;
     }
 
-    // if the nameID is >= 256, it is a font feature record (AAT)
-    let key = record.nameID >= 256 ? 'fontFeatures' : (NAMES[record.nameID] || record.nameID);
-    if (records[key] == null) {
-      records[key] = {};
+    // Single store keyed by nameID (feat/fvar look up fontFeatures[id]).
+    let byId = records.fontFeatures[record.nameID] || (records.fontFeatures[record.nameID] = {});
+    if (typeof record.string === 'string' || typeof byId[language] !== 'string') {
+      byId[language] = record.string;
     }
 
-    let obj = records[key];
-    if (record.nameID >= 256) {
-      obj = obj[record.nameID] || (obj[record.nameID] = {});
-    }
+    // Alias standard / reserved IDs onto friendly keys (same object).
+    if (record.nameID >= 256) continue;
 
-    if (typeof record.string === 'string' || typeof obj[language] !== 'string') {
-      obj[language] = record.string;
+    let name = NAMES[record.nameID];
+    if (name) {
+      records[name] = byId;
+    } else {
+      if (records.reservedNameID == null) records.reservedNameID = {};
+      records.reservedNameID[record.nameID] = byId;
     }
   }
 
@@ -101,23 +119,32 @@ NameTable.preEncode = function() {
   let records = [];
   for (let key in this.records) {
     let val = this.records[key];
-    if (key === 'fontFeatures') continue;
 
-    records.push({
-      platformID: 3,
-      encodingID: 1,
-      languageID: 0x409,
-      nameID: NAMES.indexOf(key),
-      length: val.en.length * 2,
-      string: val.en
-    });
+    if (key === 'fontFeatures') {
+      // Mirrors of IDs < 256 are encoded via named/reserved keys above.
+      for (let id in val) {
+        if (+id >= 256) pushEnRecord(records, +id, val[id].en);
+      }
+      continue;
+    }
 
-    if (key === 'postscriptName') {
+    if (key === 'reservedNameID') {
+      for (let id in val) pushEnRecord(records, +id, val[id].en);
+      continue;
+    }
+
+    let nameID = NAMES.indexOf(key);
+    if (nameID < 0) continue;
+
+    pushEnRecord(records, nameID, val.en);
+
+    // Match historical behaviour: also write PostScript name for Mac platform.
+    if (key === 'postscriptName' && typeof val.en === 'string') {
       records.push({
         platformID: 1,
         encodingID: 0,
         languageID: 0,
-        nameID: NAMES.indexOf(key),
+        nameID,
         length: val.en.length,
         string: val.en
       });
