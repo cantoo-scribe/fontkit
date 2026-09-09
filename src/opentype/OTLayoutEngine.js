@@ -27,7 +27,7 @@ export default class OTLayoutEngine {
     // GSUB and GPOS without mutating the real (shared) Glyph objects.
     this.glyphInfos = glyphRun.glyphs.map(glyph => new GlyphInfo(this.font, glyph.id, [...glyph.codePoints]));
 
-    // Select a script based on what is available in GSUB/GPOS.
+    // Select an OpenType script for GSUB/GPOS features.
     let script = null;
     if (this.GPOSProcessor) {
       script = this.GPOSProcessor.selectScript(glyphRun.script, glyphRun.language, glyphRun.direction);
@@ -37,11 +37,12 @@ export default class OTLayoutEngine {
       script = this.GSUBProcessor.selectScript(glyphRun.script, glyphRun.language, glyphRun.direction);
     }
 
-    // Choose a shaper / plan. Fall back to the buffer Unicode script when
-    // neither GSUB nor GPOS selected an OT script (needed for Thai PUA etc).
-    let shaperScript = script || glyphRun.script;
-    this.shaper = Shapers.choose(shaperScript);
-    this.plan = new ShapingPlan(this.font, shaperScript, glyphRun.direction);
+    // Choose the complex shaper from the buffer Unicode script (HB model). The OT
+    // script may fall back to DFLT/latn even for Thai text; that must not select
+    // DefaultShaper or Thai SARA AM / PUA preprocessing is skipped.
+    this.shaper = Shapers.choose(glyphRun.script || script);
+    this.plan = new ShapingPlan(this.font, script || glyphRun.script, glyphRun.direction);
+    this.plan.bufferScript = glyphRun.script;
     this.shaper.plan(this.plan, this.glyphInfos, glyphRun.features);
 
     // Enabled features as true, then overlay user values (e.g. aalt: 2) without mutating input.
