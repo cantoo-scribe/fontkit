@@ -3,19 +3,28 @@
   "version": "1.0.0",
   "description": "Unicode Trie data structure for fast character metadata lookup, ported from ICU (fflate, no tiny-inflate/pako)",
   "type": "module",
-  "main": "./index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "exports": {
-    ".": "./index.js",
-    "./builder.js": "./builder.js",
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./builder.js": {
+      "import": "./dist/builder.mjs",
+      "require": "./dist/builder.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "index.js",
-    "builder.js",
-    "swap.js",
+    "dist",
     "LICENSE",
     "README.md"
   ],
+  "scripts": {
+    "build": "node ../../scripts/build-unicode-packages.js",
+    "prepack": "npm run build"
+  },
   "dependencies": {
     "fflate": "^0.8.3"
   },

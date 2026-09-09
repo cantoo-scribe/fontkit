@@ -12,12 +12,13 @@
     "layout"
   ],
   "scripts": {
-    "clean": "shx rm -rf src/opentype/shapers/data.trie src/opentype/shapers/use.trie src/opentype/shapers/use.json src/opentype/shapers/indic.trie src/opentype/shapers/indic.json dist",
+    "clean": "shx rm -rf src/opentype/shapers/data.trie src/opentype/shapers/use.trie src/opentype/shapers/use.json src/opentype/shapers/indic.trie src/opentype/shapers/indic.json dist src/packages/unicode-trie/dist src/packages/unicode-properties/dist",
     "trie:data": "node src/opentype/shapers/generate-data.js",
     "trie:use": "node src/opentype/shapers/gen-use.js",
     "trie:indic": "node src/opentype/shapers/gen-indic.js",
     "tries": "npm run trie:data && npm run trie:use && npm run trie:indic",
-    "build": "tsup",
+    "build:packages": "node scripts/build-unicode-packages.js",
+    "build": "npm run build:packages && tsup",
     "prebuild": "node --input-type=module -e \"import fs from 'node:fs'; if (!fs.existsSync('src/opentype/shapers/data.trie')) { console.error('Missing trie files. Run: npm run tries'); process.exit(1); }\"",
     "lint": "eslint .",
     "test": "vitest run",
@@ -41,9 +42,18 @@
       "import": "./dist/browser-module.mjs",
       "require": "./dist/browser.cjs"
     },
-    "./unicode-trie": "./src/packages/unicode-trie/index.js",
-    "./unicode-trie/builder.js": "./src/packages/unicode-trie/builder.js",
-    "./unicode-properties": "./src/packages/unicode-properties/index.js",
+    "./unicode-trie": {
+      "import": "./src/packages/unicode-trie/dist/index.mjs",
+      "require": "./src/packages/unicode-trie/dist/index.cjs"
+    },
+    "./unicode-trie/builder.js": {
+      "import": "./src/packages/unicode-trie/dist/builder.mjs",
+      "require": "./src/packages/unicode-trie/dist/builder.cjs"
+    },
+    "./unicode-properties": {
+      "import": "./src/packages/unicode-properties/dist/index.mjs",
+      "require": "./src/packages/unicode-properties/dist/index.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [

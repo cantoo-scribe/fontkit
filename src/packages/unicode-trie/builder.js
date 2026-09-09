@@ -933,7 +933,7 @@ class UnicodeTrieBuilder {
   }
 
   // Generates a Buffer containing the serialized and compressed trie.
-  // Trie data is compressed twice using the deflate algorithm to minimize file size.
+  // Trie data is compressed once with raw deflate (a second pass does not help).
   // Format:
   //   uint32_t highStart;
   //   uint32_t errorValue;
@@ -947,8 +947,7 @@ class UnicodeTrieBuilder {
     // swap bytes to little-endian
     swap32LE(data);
 
-    let compressed = deflateSync(data);
-    compressed = deflateSync(compressed);
+    const compressed = deflateSync(data);
 
     const buf = Buffer.alloc(compressed.length + 12);
     buf.writeUInt32LE(trie.highStart, 0);

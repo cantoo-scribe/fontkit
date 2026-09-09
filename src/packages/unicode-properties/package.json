@@ -3,32 +3,30 @@
   "version": "1.0.0",
   "description": "Fast access to unicode character properties (vendored for @cantoo/fontkit)",
   "type": "module",
-  "main": "./index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "index.js",
-    "data.js",
-    "data-trie.js",
-    "data.trie",
-    "data.json",
-    "generate.js",
-    "prepare-publish.js",
+    "dist",
     "LICENSE",
     "README.md"
   ],
+  "scripts": {
+    "generate": "node ./generate.js",
+    "build": "node ../../scripts/build-unicode-packages.js",
+    "prepack": "npm run build"
+  },
   "dependencies": {
-    "@cantoo/unicode-trie": "^1.0.0"
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "codepoints": "^1.3.0"
-  },
-  "scripts": {
-    "generate": "node ./generate.js",
-    "prepack": "node ./prepare-publish.js prepack",
-    "postpack": "node ./prepare-publish.js restore"
   },
   "repository": {
     "type": "git",

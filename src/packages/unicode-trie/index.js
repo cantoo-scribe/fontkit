@@ -83,8 +83,7 @@ class UnicodeTrie {
         data = data.subarray(12);
       }
 
-      // double inflate the actual trie data (raw deflate, matching builder)
-      data = inflateSync(data, { out: new Uint8Array(uncompressedLength) });
+      // inflate the actual trie data (raw deflate, matching builder)
       data = inflateSync(data, { out: new Uint8Array(uncompressedLength) });
 
       // swap bytes from little-endian
