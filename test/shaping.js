@@ -586,4 +586,12 @@ describe('shaping', function () {
       test('SHBALI-2/12', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᭅᬸ", '23+2275|162+0|60@0,-1000+0');
     });
   });
+
+  describe('FeatureVariations', function () {
+    it('applies FeatureVariations at the default variation location', function () {
+      let font = fontkit.openSync(new URL('data/fonttest/TestFeatureVariations.ttf', import.meta.url));
+      let { glyphs } = font.layout('A');
+      assert.deepEqual(glyphs.map(g => g.name), ['A.alt']);
+    });
+  });
 });

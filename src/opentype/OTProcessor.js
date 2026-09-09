@@ -17,10 +17,12 @@ export default class OTProcessor {
     this.features = {};
     this.lookups = {};
 
-    // Setup variation substitutions
-    this.variationsIndex = font._variationProcessor
-      ? this.findVariationsIndex(font._variationProcessor.normalizedCoords)
-      : -1;
+    // FeatureVariations apply at the current location; default to normalized
+    // origin when no variation is set (HarfBuzz behavior). Without this,
+    // variable fonts skip FeatureVariations until getVariation() is called.
+    let coords = font._variationProcessor?.normalizedCoords
+      ?? (font.fvar ? new Array(font.fvar.axis.length).fill(0) : null);
+    this.variationsIndex = coords ? this.findVariationsIndex(coords) : -1;
 
     // initialize to default script + language
     this.selectScript();
