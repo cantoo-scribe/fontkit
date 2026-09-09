@@ -36,13 +36,16 @@ export default class TTFFont {
     this._tables = {};
     this._glyphs = {};
     this._decodeDirectory();
+    this._installTableGetters();
+  }
 
-    // define properties for each table to lazily parse
+  _installTableGetters() {
     for (let tag in this.directory.tables) {
       let table = this.directory.tables[tag];
       if (tables[tag] && table.length > 0) {
         Object.defineProperty(this, tag, {
-          get: this._getTable.bind(this, table)
+          get: this._getTable.bind(this, table),
+          configurable: true
         });
       }
     }
@@ -518,12 +521,19 @@ export default class TTFFont {
       }
     });
 
-    let stream = new r.DecodeStream(this.stream.buffer);
-    stream.pos = this._directoryPos;
+    // Decompress WOFF/WOFF2 on the source once so the clone shares resolved tables.
+    if (typeof this._decompress === 'function') {
+      this._decompress();
+    }
 
-    let font = new TTFFont(stream, coords);
-    font._tables = this._tables;
-
+    // Preserve subclass (WOFF/WOFF2) and share decoded state. @cache values and
+    // table getters are non-enumerable, so Object.assign skips them; we reinstall
+    // getters and clear the glyph cache for this variation instance.
+    let font = Object.create(Object.getPrototypeOf(this));
+    Object.assign(font, this);
+    font.variationCoords = coords;
+    font._glyphs = {};
+    font._installTableGetters();
     return font;
   }
 

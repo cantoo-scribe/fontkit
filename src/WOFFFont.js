@@ -15,21 +15,42 @@ export default class WOFFFont extends TTFFont {
     this.directory = WOFFDirectory.decode(this.stream, { _startOffset: 0 });
   }
 
-  _getTableStream(tag) {
-    let table = this.directory.tables[tag];
-    if (table) {
-      this.stream.pos = table.offset;
+  _decodeTable(table) {
+    this._decompress();
+    return super._decodeTable(table);
+  }
 
-      if (table.compLength < table.length) {
-        let buf = unzlibSync(this.stream.readBuffer(table.compLength), {
-          out: new Uint8Array(table.length)
-        });
-        return new r.DecodeStream(buf);
-      }
-
-      return this.stream;
+  // Inflate all tables into one stream so internal offsets (e.g. gvar) stay
+  // valid against this.stream — same reason WOFF2Font decompresses up front.
+  _decompress() {
+    if (this._decompressed) {
+      return;
     }
 
-    return null;
+    let totalSize = 0;
+    let layout = [];
+    for (let tag in this.directory.tables) {
+      let entry = this.directory.tables[tag];
+      layout.push({ entry, newOffset: totalSize });
+      totalSize = (totalSize + entry.length + 3) & ~3;
+    }
+
+    let buffer = new Uint8Array(totalSize);
+    for (let { entry, newOffset } of layout) {
+      this.stream.pos = entry.offset;
+      let data;
+      if (entry.compLength < entry.length) {
+        data = unzlibSync(this.stream.readBuffer(entry.compLength), {
+          out: new Uint8Array(entry.length)
+        });
+      } else {
+        data = this.stream.readBuffer(entry.length);
+      }
+      buffer.set(data, newOffset);
+      entry.offset = newOffset;
+    }
+
+    this.stream = new r.DecodeStream(buffer);
+    this._decompressed = true;
   }
 }
