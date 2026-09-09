@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "generate": "node ./generate.js",
-    "build": "node ../../scripts/build-unicode-packages.js",
+    "build": "node ../../../scripts/build-unicode-packages.js",
     "prepack": "npm run build"
   },
   "dependencies": {
@@ -38,6 +38,9 @@
     "Cantoo"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "unicode",
     "metadata",

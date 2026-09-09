@@ -17,7 +17,7 @@ Fontkit is an advanced font engine for Node and the browser, used by [PDFKit](ht
 
 ## Installation
 
-    npm install fontkit
+    npm install @cantoo/fontkit
 
 ## Example
 

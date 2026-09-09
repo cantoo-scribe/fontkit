@@ -9,7 +9,8 @@
     "requireCleanWorkingDir": true
   },
   "npm": {
-    "publish": true
+    "publish": true,
+    "publishArgs": ["--access", "public"]
   },
   "github": {
     "release": false
