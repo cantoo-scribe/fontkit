@@ -638,4 +638,38 @@ describe('shaping', function () {
       assert.equal(font.layout('fi', { liga: true }).glyphs.length, 1);
     });
   });
+
+  describe('canonical composition (NFC)', function () {
+    let font = fontkit.openSync(new URL('data/FiraSans/FiraSans-Regular.ttf', import.meta.url));
+    let shape = (...cps) => font.layout(String.fromCodePoint(...cps)).glyphs.map(g => g.id);
+
+    it('composes base + combining mark into the precomposed glyph', function () {
+      assert.deepEqual(shape(0x69, 0x300), shape(0x00EC));
+    });
+
+    it('composes a multi-mark sequence greedily', function () {
+      assert.deepEqual(shape(0x65, 0x302, 0x301), shape(0x1EBF));
+    });
+
+    it('leaves a sequence decomposed when the font has no precomposed glyph', function () {
+      assert.equal(shape(0x62, 0x300).length, 2);
+    });
+
+    it('does not interfere with GSUB ligatures', function () {
+      assert.ok(shape(0x6F, 0x66, 0x66, 0x69, 0x63, 0x65).length < 6);
+    });
+
+    it('reorders and composes Arabic marks across combining classes', function () {
+      let amiri = fontkit.openSync(new URL('data/amiri/amiri-regular.ttf', import.meta.url));
+      let shapeAr = (...cps) => amiri.layout(String.fromCodePoint(...cps)).glyphs.map(g => g.id);
+      assert.deepEqual(shapeAr(0x627, 0x654), shapeAr(0x623));
+      assert.deepEqual(shapeAr(0x627, 0x64b, 0x654), shapeAr(0x623, 0x64b));
+    });
+
+    it('leaves a non-composing mark cluster unreordered for GSUB', function () {
+      let amiri = fontkit.openSync(new URL('data/amiri/amiri-regular.ttf', import.meta.url));
+      let { glyphs } = amiri.layout(String.fromCodePoint(0x627, 0x651, 0x64b), { calt: true }, undefined, 'ARA ');
+      assert.deepEqual(glyphs.map(g => g.name), ['uni064B.small', 'uni0651', 'uni0627']);
+    });
+  });
 });

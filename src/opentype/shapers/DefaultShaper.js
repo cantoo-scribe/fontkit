@@ -1,4 +1,5 @@
-import {isDigit} from 'unicode-properties';
+import {isDigit, isMark} from 'unicode-properties';
+import GlyphInfo from '../GlyphInfo';
 
 const VARIATION_FEATURES = ['rvrn'];
 const COMMON_FEATURES = ['ccmp', 'locl', 'rlig', 'mark', 'mkmk'];
@@ -42,6 +43,9 @@ export default class DefaultShaper {
   }
 
   static assignFeatures(plan, glyphs) {
+    // Font-aware NFC before GSUB (HarfBuzz default-shaper behavior).
+    composeGlyphs(plan.font, glyphs);
+
     // Enable contextual fractions
     for (let i = 0; i < glyphs.length; i++) {
       let glyph = glyphs[i];
@@ -68,5 +72,45 @@ export default class DefaultShaper {
         i = end - 1;
       }
     }
+  }
+}
+
+// Compose base+mark clusters when the font has the precomposed glyph.
+// Skip pure mark reorders (same length) so Arabic calt etc. keep expected order.
+function composeGlyphs(font, glyphs) {
+  let singleMark = g => g.codePoints.length === 1 && isMark(g.codePoints[0]);
+
+  for (let i = 0; i < glyphs.length; ) {
+    let base = glyphs[i];
+    if (base.codePoints.length !== 1 || isMark(base.codePoints[0])) {
+      i++;
+      continue;
+    }
+
+    let end = i + 1;
+    while (end < glyphs.length && singleMark(glyphs[end])) end++;
+    if (end === i + 1) {
+      i++;
+      continue;
+    }
+
+    let input = glyphs.slice(i, end).map(g => g.codePoints[0]);
+    let composed = Array.from(String.fromCodePoint(...input).normalize('NFC')).flatMap(char => {
+      let cp = char.codePointAt(0);
+      return font.hasGlyphForCodePoint(cp)
+        ? [cp]
+        : Array.from(char.normalize('NFD'), c => c.codePointAt(0));
+    });
+
+    if (composed.length === input.length) {
+      i = end;
+      continue;
+    }
+
+    let replacement = composed.map(
+      cp => new GlyphInfo(font, font.glyphForCodePoint(cp).id, [cp], base.features)
+    );
+    glyphs.splice(i, end - i, ...replacement);
+    i += replacement.length;
   }
 }
