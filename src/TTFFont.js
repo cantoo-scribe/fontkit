@@ -9,6 +9,7 @@ import TTFGlyph from './glyph/TTFGlyph';
 import CFFGlyph from './glyph/CFFGlyph';
 import SBIXGlyph from './glyph/SBIXGlyph';
 import COLRGlyph from './glyph/COLRGlyph';
+import CBDTGlyph from './glyph/CBDTGlyph';
 import GlyphVariationProcessor from './glyph/GlyphVariationProcessor';
 import TTFSubset from './subset/TTFSubset';
 import CFFSubset from './subset/CFFSubset';
@@ -434,16 +435,23 @@ export default class TTFFont {
   }
 
   _getBaseGlyph(glyph, characters = []) {
-    if (!this._glyphs[glyph]) {
-      if (this.directory.tables.glyf) {
-        this._glyphs[glyph] = new TTFGlyph(glyph, characters, this);
-
-      } else if (this.directory.tables['CFF '] || this.directory.tables.CFF2) {
-        this._glyphs[glyph] = new CFFGlyph(glyph, characters, this);
-      }
+    let cached = this._glyphs[glyph];
+    if (cached?._getContours) {
+      return cached;
     }
 
-    return this._glyphs[glyph] || null;
+    let outline = null;
+    if (this.directory.tables.glyf) {
+      outline = new TTFGlyph(glyph, characters, this);
+    } else if (this.directory.tables['CFF '] || this.directory.tables.CFF2) {
+      outline = new CFFGlyph(glyph, characters, this);
+    }
+
+    if (outline && !cached) {
+      this._glyphs[glyph] = outline;
+    }
+
+    return outline;
   }
 
   /**
@@ -462,6 +470,9 @@ export default class TTFFont {
 
       } else if ((this.directory.tables.COLR) && (this.directory.tables.CPAL)) {
         this._glyphs[glyph] = new COLRGlyph(glyph, characters, this);
+
+      } else if (this.directory.tables.CBLC || this.directory.tables.EBLC) {
+        this._glyphs[glyph] = new CBDTGlyph(glyph, characters, this);
 
       } else {
         this._getBaseGlyph(glyph, characters);

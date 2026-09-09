@@ -17,9 +17,15 @@ export default class COLRGlyph extends Glyph {
   type = 'COLR';
 
   _getBBox() {
+    let layers = this.layers;
+    if (!layers) {
+      let g = this._font._getBaseGlyph(this.id);
+      return g ? g.bbox : new BBox(0, 0, 0, 0);
+    }
+
     let bbox = new BBox;
-    for (let i = 0; i < this.layers.length; i++) {
-      let layer = this.layers[i];
+    for (let i = 0; i < layers.length; i++) {
+      let layer = layers[i];
       let b = layer.glyph.bbox;
       bbox.addPoint(b.minX, b.minY);
       bbox.addPoint(b.maxX, b.maxY);
@@ -36,6 +42,12 @@ export default class COLRGlyph extends Glyph {
   get layers() {
     let cpal = this._font.CPAL;
     let colr = this._font.COLR;
+
+    // COLR v1 uses paint-based records instead of v0 baseGlyphRecord
+    if (!colr || !colr.baseGlyphRecord) {
+      return null;
+    }
+
     let low = 0;
     let high = colr.baseGlyphRecord.length - 1;
     let baseLayer;
@@ -81,7 +93,12 @@ export default class COLRGlyph extends Glyph {
   }
 
   render(ctx, size) {
-    for (let {glyph, color} of this.layers) {
+    let layers = this.layers;
+    if (!layers) {
+      return;
+    }
+
+    for (let {glyph, color} of layers) {
       ctx.fillColor([color.red, color.green, color.blue], color.alpha / 255 * 100);
       glyph.render(ctx, size);
     }
