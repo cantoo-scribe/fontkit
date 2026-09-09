@@ -149,5 +149,15 @@ describe('font subsetting', function () {
       glyph = new CFFGlyph(3, [], { stream, 'CFF ': cff });
       assert.equal(glyph.path.toSVG(), koreanFont.glyphsForString('d')[0].path.toSVG());
     });
+
+    it('should encode a notdef-only subset without an invalid charset range', function () {
+      let subset = font.createSubset();
+      let buf = subset.encode();
+      let stream = new r.DecodeStream(buf);
+      let CFFFont = font._tables['CFF '].constructor;
+      let cff = new CFFFont(stream);
+      assert.equal(cff.topDict.CharStrings.length, 1);
+      assert.deepEqual(cff.topDict.charset.ranges, []);
+    });
   });
 });
