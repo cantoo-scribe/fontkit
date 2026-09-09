@@ -151,22 +151,21 @@ export default class CmapProcessor {
 
     let selectors = this.uvs.varSelectors.toArray();
     let i = binarySearch(selectors, x => variationSelector - x.varSelector);
-    let sel = selectors[i];
-
-    if (i !== -1 && sel.defaultUVS) {
-      i = binarySearch(sel.defaultUVS, x =>
-        codepoint < x.startUnicodeValue ? -1 : codepoint > x.startUnicodeValue + x.additionalCount ? +1 : 0
-      );
+    if (i === -1) {
+      return 0;
     }
 
-    if (i !== -1 && sel.nonDefaultUVS) {
-      i = binarySearch(sel.nonDefaultUVS, x => codepoint - x.unicodeValue);
-      if (i !== -1) {
-        return sel.nonDefaultUVS[i].glyphID;
-      }
-    }
+    let {defaultUVS, nonDefaultUVS} = selectors[i];
 
-    return 0;
+    // Default UVS: fall back to the base character's normal cmap glyph.
+    if (defaultUVS && binarySearch(defaultUVS, x =>
+      codepoint < x.startUnicodeValue ? -1 : codepoint > x.startUnicodeValue + x.additionalCount ? 1 : 0
+    ) !== -1) return 0;
+
+    if (!nonDefaultUVS) return 0;
+
+    let ni = binarySearch(nonDefaultUVS, x => codepoint - x.unicodeValue);
+    return ni !== -1 ? nonDefaultUVS[ni].glyphID : 0;
   }
 
   @cache
