@@ -1,4 +1,4 @@
-import {isDigit, isMark} from 'unicode-properties';
+import {isDigit, isMark} from '../../packages/unicode-properties/index.js';
 import GlyphInfo from '../GlyphInfo';
 
 const VARIATION_FEATURES = ['rvrn'];

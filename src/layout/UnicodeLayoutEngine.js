@@ -1,4 +1,4 @@
-import {getCombiningClass} from 'unicode-properties';
+import {getCombiningClass} from '../packages/unicode-properties/index.js';
 
 /**
  * This class is used when GPOS does not define 'mark' or 'mkmk' features

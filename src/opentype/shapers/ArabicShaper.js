@@ -1,6 +1,6 @@
 import DefaultShaper from './DefaultShaper';
-import {getCategory} from 'unicode-properties';
-import UnicodeTrie from 'unicode-trie';
+import {getCategory} from '../../packages/unicode-properties/index.js';
+import UnicodeTrie from '../../packages/unicode-trie/index.js';
 import { decodeBase64 } from '../../utils';
 import dataTrie from './data.trie';
 

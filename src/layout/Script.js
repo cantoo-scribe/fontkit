@@ -1,4 +1,4 @@
-import {getScript} from 'unicode-properties';
+import {getScript} from '../packages/unicode-properties/index.js';
 
 // This maps the Unicode Script property to an OpenType script tag
 // Data from http://www.microsoft.com/typography/otspec/scripttags.htm

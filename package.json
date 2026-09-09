@@ -41,6 +41,9 @@
       "import": "./dist/browser-module.mjs",
       "require": "./dist/browser.cjs"
     },
+    "./unicode-trie": "./src/packages/unicode-trie/index.js",
+    "./unicode-trie/builder.js": "./src/packages/unicode-trie/builder.js",
+    "./unicode-properties": "./src/packages/unicode-properties/index.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -59,9 +62,7 @@
     "dfa": "^1.2.0",
     "fast-deep-equal": "^3.1.3",
     "fflate": "^0.8.3",
-    "restructure": "^3.0.0",
-    "unicode-properties": "^1.4.0",
-    "unicode-trie": "^2.0.0"
+    "restructure": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",

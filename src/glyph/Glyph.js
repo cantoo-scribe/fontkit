@@ -1,6 +1,6 @@
 import { cache } from '../decorators';
 import Path from './Path';
-import {isMark} from 'unicode-properties';
+import {isMark} from '../packages/unicode-properties/index.js';
 import StandardNames from './StandardNames';
 
 /**

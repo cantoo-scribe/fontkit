@@ -1,0 +1,37 @@
+{
+  "name": "@cantoo/unicode-trie",
+  "version": "1.0.0",
+  "description": "Unicode Trie data structure for fast character metadata lookup, ported from ICU (fflate, no tiny-inflate/pako)",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./builder.js": "./builder.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "builder.js",
+    "swap.js",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "fflate": "^0.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cantoo-scribe/fontkit.git",
+    "directory": "src/packages/unicode-trie"
+  },
+  "author": "Devon Govett <devongovett@gmail.com>",
+  "contributors": [
+    "Cantoo"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "unicode",
+    "trie",
+    "icu"
+  ]
+}

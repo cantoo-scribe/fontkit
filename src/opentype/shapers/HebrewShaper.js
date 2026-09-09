@@ -1,4 +1,4 @@
-import {getCombiningClass} from 'unicode-properties';
+import {getCombiningClass} from '../../packages/unicode-properties/index.js';
 import DefaultShaper from './DefaultShaper';
 import GlyphInfo from '../GlyphInfo';
 
