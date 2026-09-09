@@ -54,8 +54,8 @@ export default class CFFDict {
 
     // define hidden properties
     Object.defineProperties(ret, {
-      parent:         { value: parent },
-      _startOffset:   { value: stream.pos }
+      parent: { value: parent },
+      _startOffset: { value: stream.pos }
     });
 
     // fill in defaults

@@ -35,8 +35,8 @@ export default class Subset {
   includeTable(tag) {
     if (typeof tag !== 'string' || tag.length !== 4) {
       throw new Error(
-        `Invalid OpenType table tag ${JSON.stringify(tag)}: tags must be 4 characters ` +
-        `(pad with spaces if needed, e.g. "cvt ").`
+        `Invalid OpenType table tag ${JSON.stringify(tag)}: tags must be 4 characters `
+        + `(pad with spaces if needed, e.g. "cvt ").`
       );
     }
 

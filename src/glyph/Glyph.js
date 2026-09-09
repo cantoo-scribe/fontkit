@@ -1,6 +1,6 @@
 import { cache } from '../decorators';
 import Path from './Path';
-import {isMark} from '../packages/unicode-properties/index.js';
+import { isMark } from '../packages/unicode-properties/index.js';
 import StandardNames from './StandardNames';
 
 /**
@@ -63,12 +63,12 @@ export default class Glyph {
     if (this._metrics) { return this._metrics; }
     if (cbox == null) { ({ cbox } = this); }
 
-    let {advance: advanceWidth, bearing: leftBearing} = this._getTableMetrics(this._font.hmtx);
+    let { advance: advanceWidth, bearing: leftBearing } = this._getTableMetrics(this._font.hmtx);
 
     // Vertical metrics: vmtx, else font ascent/descent (respects useTypoMetrics)
     let advanceHeight, topBearing;
     if (this._font.vmtx) {
-      ({advance: advanceHeight, bearing: topBearing} = this._getTableMetrics(this._font.vmtx));
+      ({ advance: advanceHeight, bearing: topBearing } = this._getTableMetrics(this._font.vmtx));
     } else {
       advanceHeight = Math.abs(this._font.ascent - this._font.descent);
       topBearing = this._font.ascent - cbox.maxY;
@@ -78,7 +78,7 @@ export default class Glyph {
       advanceWidth += this._font._variationProcessor.getAdvanceAdjustment(this.id, this._font.HVAR);
     }
 
-    let {width, height} = cbox;
+    let { width, height } = cbox;
     return this._metrics = {
       width,
       height,

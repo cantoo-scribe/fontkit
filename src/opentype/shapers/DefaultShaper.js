@@ -1,4 +1,4 @@
-import {isDigit, isMark} from '../../packages/unicode-properties/index.js';
+import { isDigit, isMark } from '../../packages/unicode-properties/index.js';
 import GlyphInfo from '../GlyphInfo';
 
 const VARIATION_FEATURES = ['rvrn'];
@@ -80,7 +80,7 @@ export default class DefaultShaper {
 function composeGlyphs(font, glyphs) {
   let singleMark = g => g.codePoints.length === 1 && isMark(g.codePoints[0]);
 
-  for (let i = 0; i < glyphs.length; ) {
+  for (let i = 0; i < glyphs.length;) {
     let base = glyphs[i];
     if (base.codePoints.length !== 1 || isMark(base.codePoints[0])) {
       i++;
@@ -95,7 +95,7 @@ function composeGlyphs(font, glyphs) {
     }
 
     let input = glyphs.slice(i, end).map(g => g.codePoints[0]);
-    let composed = Array.from(String.fromCodePoint(...input).normalize('NFC')).flatMap(char => {
+    let composed = Array.from(String.fromCodePoint(...input).normalize('NFC')).flatMap((char) => {
       let cp = char.codePointAt(0);
       return font.hasGlyphForCodePoint(cp)
         ? [cp]

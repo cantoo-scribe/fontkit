@@ -1,4 +1,3 @@
-import * as r from 'restructure';
 import { cache } from './decorators';
 import * as fontkit from './base';
 import Directory from './tables/directory';
@@ -82,7 +81,7 @@ export default class TTFFont {
   }
 
   _decodeDirectory() {
-    return this.directory = Directory.decode(this.stream, {_startOffset: 0});
+    return this.directory = Directory.decode(this.stream, { _startOffset: 0 });
   }
 
   _decodeTable(table) {
@@ -108,14 +107,14 @@ export default class TTFFont {
     let ascent, descent, lineGap;
 
     if (hasTypo && os2.fsSelection.useTypoMetrics) {
-      ({typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap} = os2);
+      ({ typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap } = os2);
     } else {
-      ({ascent, descent, lineGap} = this.hhea);
+      ({ ascent, descent, lineGap } = this.hhea);
 
       // Only when both hhea values are zero — FreeType uses !(ascender || descender)
       if (!(ascent || descent) && hasTypo) {
         if (os2.typoAscender || os2.typoDescender) {
-          ({typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap} = os2);
+          ({ typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap } = os2);
         } else {
           ascent = os2.winAscent;
           descent = -os2.winDescent;
@@ -142,12 +141,12 @@ export default class TTFFont {
     if (record) {
       // Attempt to retrieve the entry, depending on which translation is available:
       return (
-          record[lang]
-          || record[this.defaultLanguage]
-          || record[fontkit.defaultLanguage]
-          || record['en']
-          || record[Object.keys(record)[0]] // Seriously, ANY language would be fine
-          || null
+        record[lang]
+        || record[this.defaultLanguage]
+        || record[fontkit.defaultLanguage]
+        || record['en']
+        || record[Object.keys(record)[0]] // Seriously, ANY language would be fine
+        || null
       );
     }
 
@@ -467,13 +466,10 @@ export default class TTFFont {
     if (!this._glyphs[glyph]) {
       if (this.directory.tables.sbix) {
         this._glyphs[glyph] = new SBIXGlyph(glyph, characters, this);
-
       } else if ((this.directory.tables.COLR) && (this.directory.tables.CPAL)) {
         this._glyphs[glyph] = new COLRGlyph(glyph, characters, this);
-
       } else if (this.directory.tables.CBLC || this.directory.tables.EBLC) {
         this._glyphs[glyph] = new CBDTGlyph(glyph, characters, this);
-
       } else {
         this._getBaseGlyph(glyph, characters);
       }
@@ -569,7 +565,7 @@ export default class TTFFont {
     }
 
     // normalize the coordinates
-    let coords = this.fvar.axis.map(axis => {
+    let coords = this.fvar.axis.map((axis) => {
       let axisTag = axis.axisTag.trim();
       if (axisTag in settings) {
         return Math.max(axis.minValue, Math.min(axis.maxValue, settings[axisTag]));

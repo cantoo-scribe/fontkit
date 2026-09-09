@@ -1,4 +1,4 @@
-import {binarySearch} from '../utils';
+import { binarySearch } from '../utils';
 
 export default class KernProcessor {
   constructor(font) {

@@ -30,8 +30,8 @@ export default class GlyphIterator {
       }
     }
 
-    return (this.flags.ignoreBaseGlyphs && glyph.isBase) ||
-           (this.flags.ignoreLigatures && glyph.isLigature);
+    return (this.flags.ignoreBaseGlyphs && glyph.isBase)
+      || (this.flags.ignoreLigatures && glyph.isLigature);
   }
 
   move(dir) {

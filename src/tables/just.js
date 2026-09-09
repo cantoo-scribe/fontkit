@@ -5,7 +5,7 @@ let ClassTable = new r.Struct({
   length: r.uint16,
   coverage: r.uint16,
   subFeatureFlags: r.uint32,
-  stateTable: new StateTable1
+  stateTable: new StateTable1()
 });
 
 let WidthDeltaRecord = new r.Struct({

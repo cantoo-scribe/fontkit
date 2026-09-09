@@ -72,7 +72,7 @@ let CFFCustomEncoding = new r.VersionedStruct(new CFFEncodingVersion(), {
   // TODO: supplement?
 });
 
-let CFFEncoding = new PredefinedOp([ StandardEncoding, ExpertEncoding ], new CFFPointer(CFFCustomEncoding, { lazy: true }));
+let CFFEncoding = new PredefinedOp([StandardEncoding, ExpertEncoding], new CFFPointer(CFFCustomEncoding, { lazy: true }));
 
 // Decodes an array of ranges until the total
 // length is equal to the provided length.
@@ -106,7 +106,7 @@ let CFFCustomCharset = new r.VersionedStruct(r.uint8, {
   }
 });
 
-let CFFCharset = new PredefinedOp([ ISOAdobeCharset, ExpertCharset, ExpertSubsetCharset ], new CFFPointer(CFFCustomCharset, {lazy: true}));
+let CFFCharset = new PredefinedOp([ISOAdobeCharset, ExpertCharset, ExpertSubsetCharset], new CFFPointer(CFFCustomCharset, { lazy: true }));
 
 let FDRange3 = new r.Struct({
   first: r.uint16,
@@ -154,82 +154,82 @@ class CFFPrivateOp {
 
 let FontDict = new CFFDict([
   // key       name                   type(s)                                 default
-  [18,        'Private',              new CFFPrivateOp,                       null],
-  [[12, 38],  'FontName',             'sid',                                  null],
-  [[12, 7],   'FontMatrix',           'array',                                [0.001, 0, 0, 0.001, 0, 0]],
-  [[12, 5],   'PaintType',            'number',                               0],
+  [18, 'Private', new CFFPrivateOp(), null],
+  [[12, 38], 'FontName', 'sid', null],
+  [[12, 7], 'FontMatrix', 'array', [0.001, 0, 0, 0.001, 0, 0]],
+  [[12, 5], 'PaintType', 'number', 0]
 ]);
 
 let CFFTopDict = new CFFDict([
   // key       name                   type(s)                                 default
-  [[12, 30],  'ROS',                  ['sid', 'sid', 'number'],               null],
+  [[12, 30], 'ROS', ['sid', 'sid', 'number'], null],
 
-  [0,         'version',              'sid',                                  null],
-  [1,         'Notice',               'sid',                                  null],
-  [[12, 0],   'Copyright',            'sid',                                  null],
-  [2,         'FullName',             'sid',                                  null],
-  [3,         'FamilyName',           'sid',                                  null],
-  [4,         'Weight',               'sid',                                  null],
-  [[12, 1],   'isFixedPitch',         'boolean',                              false],
-  [[12, 2],   'ItalicAngle',          'number',                               0],
-  [[12, 3],   'UnderlinePosition',    'number',                               -100],
-  [[12, 4],   'UnderlineThickness',   'number',                               50],
-  [[12, 5],   'PaintType',            'number',                               0],
-  [[12, 6],   'CharstringType',       'number',                               2],
-  [[12, 7],   'FontMatrix',           'array',                                [0.001, 0, 0, 0.001, 0, 0]],
-  [13,        'UniqueID',             'number',                               null],
-  [5,         'FontBBox',             'array',                                [0, 0, 0, 0]],
-  [[12, 8],   'StrokeWidth',          'number',                               0],
-  [14,        'XUID',                 'array',                                null],
-  [15,        'charset',              CFFCharset,                             ISOAdobeCharset],
-  [16,        'Encoding',             CFFEncoding,                            StandardEncoding],
-  [17,        'CharStrings',          new CFFPointer(new CFFIndex),           null],
-  [18,        'Private',              new CFFPrivateOp,                       null],
-  [[12, 20],  'SyntheticBase',        'number',                               null],
-  [[12, 21],  'PostScript',           'sid',                                  null],
-  [[12, 22],  'BaseFontName',         'sid',                                  null],
-  [[12, 23],  'BaseFontBlend',        'delta',                                null],
+  [0, 'version', 'sid', null],
+  [1, 'Notice', 'sid', null],
+  [[12, 0], 'Copyright', 'sid', null],
+  [2, 'FullName', 'sid', null],
+  [3, 'FamilyName', 'sid', null],
+  [4, 'Weight', 'sid', null],
+  [[12, 1], 'isFixedPitch', 'boolean', false],
+  [[12, 2], 'ItalicAngle', 'number', 0],
+  [[12, 3], 'UnderlinePosition', 'number', -100],
+  [[12, 4], 'UnderlineThickness', 'number', 50],
+  [[12, 5], 'PaintType', 'number', 0],
+  [[12, 6], 'CharstringType', 'number', 2],
+  [[12, 7], 'FontMatrix', 'array', [0.001, 0, 0, 0.001, 0, 0]],
+  [13, 'UniqueID', 'number', null],
+  [5, 'FontBBox', 'array', [0, 0, 0, 0]],
+  [[12, 8], 'StrokeWidth', 'number', 0],
+  [14, 'XUID', 'array', null],
+  [15, 'charset', CFFCharset, ISOAdobeCharset],
+  [16, 'Encoding', CFFEncoding, StandardEncoding],
+  [17, 'CharStrings', new CFFPointer(new CFFIndex()), null],
+  [18, 'Private', new CFFPrivateOp(), null],
+  [[12, 20], 'SyntheticBase', 'number', null],
+  [[12, 21], 'PostScript', 'sid', null],
+  [[12, 22], 'BaseFontName', 'sid', null],
+  [[12, 23], 'BaseFontBlend', 'delta', null],
 
   // CID font specific
-  [[12, 31],  'CIDFontVersion',       'number',                               0],
-  [[12, 32],  'CIDFontRevision',      'number',                               0],
-  [[12, 33],  'CIDFontType',          'number',                               0],
-  [[12, 34],  'CIDCount',             'number',                               8720],
-  [[12, 35],  'UIDBase',              'number',                               null],
-  [[12, 37],  'FDSelect',             new CFFPointer(FDSelect),               null],
-  [[12, 36],  'FDArray',              new CFFPointer(new CFFIndex(FontDict)), null],
-  [[12, 38],  'FontName',             'sid',                                  null]
+  [[12, 31], 'CIDFontVersion', 'number', 0],
+  [[12, 32], 'CIDFontRevision', 'number', 0],
+  [[12, 33], 'CIDFontType', 'number', 0],
+  [[12, 34], 'CIDCount', 'number', 8720],
+  [[12, 35], 'UIDBase', 'number', null],
+  [[12, 37], 'FDSelect', new CFFPointer(FDSelect), null],
+  [[12, 36], 'FDArray', new CFFPointer(new CFFIndex(FontDict)), null],
+  [[12, 38], 'FontName', 'sid', null]
 ]);
 
 let VariationStore = new r.Struct({
   length: r.uint16,
   itemVariationStore: ItemVariationStore
-})
+});
 
 let CFF2TopDict = new CFFDict([
-  [[12, 7],   'FontMatrix',           'array',                                [0.001, 0, 0, 0.001, 0, 0]],
-  [17,        'CharStrings',          new CFFPointer(new CFFIndex),           null],
-  [[12, 37],  'FDSelect',             new CFFPointer(FDSelect),               null],
-  [[12, 36],  'FDArray',              new CFFPointer(new CFFIndex(FontDict)), null],
-  [24,        'vstore',               new CFFPointer(VariationStore),         null],
-  [25,        'maxstack',             'number',                               193]
+  [[12, 7], 'FontMatrix', 'array', [0.001, 0, 0, 0.001, 0, 0]],
+  [17, 'CharStrings', new CFFPointer(new CFFIndex()), null],
+  [[12, 37], 'FDSelect', new CFFPointer(FDSelect), null],
+  [[12, 36], 'FDArray', new CFFPointer(new CFFIndex(FontDict)), null],
+  [24, 'vstore', new CFFPointer(VariationStore), null],
+  [25, 'maxstack', 'number', 193]
 ]);
 
 let CFFTop = new r.VersionedStruct(r.fixed16, {
   1: {
-    hdrSize:            r.uint8,
-    offSize:            r.uint8,
-    nameIndex:          new CFFIndex(new r.String('length')),
-    topDictIndex:       new CFFIndex(CFFTopDict),
-    stringIndex:        new CFFIndex(new r.String('length')),
-    globalSubrIndex:    new CFFIndex
+    hdrSize: r.uint8,
+    offSize: r.uint8,
+    nameIndex: new CFFIndex(new r.String('length')),
+    topDictIndex: new CFFIndex(CFFTopDict),
+    stringIndex: new CFFIndex(new r.String('length')),
+    globalSubrIndex: new CFFIndex()
   },
 
   2: {
-    hdrSize:            r.uint8,
-    length:             r.uint16,
-    topDict:            CFF2TopDict,
-    globalSubrIndex:    new CFFIndex
+    hdrSize: r.uint8,
+    length: r.uint16,
+    topDict: CFF2TopDict,
+    globalSubrIndex: new CFFIndex()
   }
 });
 

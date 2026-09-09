@@ -35,7 +35,7 @@ let knownTags = [
 let WOFF2DirectoryEntry = new r.Struct({
   flags: r.uint8,
   customTag: new r.Optional(new r.String(4), t => (t.flags & 0x3f) === 0x3f),
-  tag: t => t.customTag || knownTags[t.flags & 0x3f],// || (() => { throw new Error(`Bad tag: ${flags & 0x3f}`); })(); },
+  tag: t => t.customTag || knownTags[t.flags & 0x3f], // || (() => { throw new Error(`Bad tag: ${flags & 0x3f}`); })(); },
   length: Base128,
   transformVersion: t => (t.flags >>> 6) & 0x03,
   transformed: t => (t.tag === 'glyf' || t.tag === 'loca') ? t.transformVersion === 0 : t.transformVersion !== 0,
@@ -60,7 +60,7 @@ let WOFF2Directory = new r.Struct({
   tables: new r.Array(WOFF2DirectoryEntry, 'numTables')
 });
 
-WOFF2Directory.process = function() {
+WOFF2Directory.process = function () {
   let tables = {};
   for (let i = 0; i < this.tables.length; i++) {
     let table = this.tables[i];

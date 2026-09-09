@@ -35,7 +35,7 @@ export class UnboundedArray extends r.Array {
   }
 }
 
-export let LookupTable = function(ValueType = r.uint16) {
+export let LookupTable = function (ValueType = r.uint16) {
   // Helper class that makes internal structures invisible to pointers
   class Shadow {
     constructor(type) {
@@ -77,7 +77,7 @@ export let LookupTable = function(ValueType = r.uint16) {
   let LookupSegmentArray = new r.Struct({
     lastGlyph: r.uint16,
     firstGlyph: r.uint16,
-    values: new r.Pointer(r.uint16, new r.Array(ValueType, t => t.lastGlyph - t.firstGlyph + 1), {type: 'parent'})
+    values: new r.Pointer(r.uint16, new r.Array(ValueType, t => t.lastGlyph - t.firstGlyph + 1), { type: 'parent' })
   });
 
   let LookupSingle = new r.Struct({

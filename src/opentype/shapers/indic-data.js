@@ -14,11 +14,11 @@ export const CATEGORIES = {
   A: 1 << 10,
   Placeholder: 1 << 11,
   Dotted_Circle: 1 << 12,
-  RS: 1 << 13,    // Register Shifter, used in Khmer OT spec.
+  RS: 1 << 13, // Register Shifter, used in Khmer OT spec.
   Coeng: 1 << 14, // Khmer-style Virama.
   Repha: 1 << 15, // Atomically-encoded logical or visual repha.
   Ra: 1 << 16,
-  CM: 1 << 17,    // Consonant-Medial.
+  CM: 1 << 17, // Consonant-Medial.
   Symbol: 1 << 18 // Avagraha, etc that take marks (SM,A,VD).
 };
 

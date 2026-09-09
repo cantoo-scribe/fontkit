@@ -7,41 +7,41 @@ import ThaiShaper from './ThaiShaper';
 import UniversalShaper from './UniversalShaper';
 
 const SHAPERS = {
-  arab: ArabicShaper,    // Arabic
-  mong: ArabicShaper,    // Mongolian
-  syrc: ArabicShaper,    // Syriac
-  'nko ': ArabicShaper,  // N'Ko
-  phag: ArabicShaper,    // Phags Pa
-  mand: ArabicShaper,    // Mandaic
-  mani: ArabicShaper,    // Manichaean
-  phlp: ArabicShaper,    // Psalter Pahlavi
+  arab: ArabicShaper, // Arabic
+  mong: ArabicShaper, // Mongolian
+  syrc: ArabicShaper, // Syriac
+  'nko ': ArabicShaper, // N'Ko
+  phag: ArabicShaper, // Phags Pa
+  mand: ArabicShaper, // Mandaic
+  mani: ArabicShaper, // Manichaean
+  phlp: ArabicShaper, // Psalter Pahlavi
 
-  hang: HangulShaper,    // Hangul
+  hang: HangulShaper, // Hangul
 
-  hebr: HebrewShaper,    // Hebrew
+  hebr: HebrewShaper, // Hebrew
 
-  bng2: IndicShaper,     // Bengali
-  beng: IndicShaper,     // Bengali
-  dev2: IndicShaper,     // Devanagari
-  deva: IndicShaper,     // Devanagari
-  gjr2: IndicShaper,     // Gujarati
-  gujr: IndicShaper,     // Gujarati
-  guru: IndicShaper,     // Gurmukhi
-  gur2: IndicShaper,     // Gurmukhi
-  knda: IndicShaper,     // Kannada
-  knd2: IndicShaper,     // Kannada
-  mlm2: IndicShaper,     // Malayalam
-  mlym: IndicShaper,     // Malayalam
-  ory2: IndicShaper,     // Oriya
-  orya: IndicShaper,     // Oriya
-  taml: IndicShaper,     // Tamil
-  tml2: IndicShaper,     // Tamil
-  telu: IndicShaper,     // Telugu
-  tel2: IndicShaper,     // Telugu
-  khmr: IndicShaper,     // Khmer
+  bng2: IndicShaper, // Bengali
+  beng: IndicShaper, // Bengali
+  dev2: IndicShaper, // Devanagari
+  deva: IndicShaper, // Devanagari
+  gjr2: IndicShaper, // Gujarati
+  gujr: IndicShaper, // Gujarati
+  guru: IndicShaper, // Gurmukhi
+  gur2: IndicShaper, // Gurmukhi
+  knda: IndicShaper, // Kannada
+  knd2: IndicShaper, // Kannada
+  mlm2: IndicShaper, // Malayalam
+  mlym: IndicShaper, // Malayalam
+  ory2: IndicShaper, // Oriya
+  orya: IndicShaper, // Oriya
+  taml: IndicShaper, // Tamil
+  tml2: IndicShaper, // Tamil
+  telu: IndicShaper, // Telugu
+  tel2: IndicShaper, // Telugu
+  khmr: IndicShaper, // Khmer
 
-  thai: ThaiShaper,      // Thai
-  'lao ': ThaiShaper,    // Lao (4-char OT tag with trailing space)
+  thai: ThaiShaper, // Thai
+  'lao ': ThaiShaper, // Lao (4-char OT tag with trailing space)
 
   bali: UniversalShaper, // Balinese
   batk: UniversalShaper, // Batak
@@ -89,8 +89,8 @@ const SHAPERS = {
   tfng: UniversalShaper, // Tifinagh
   tirh: UniversalShaper, // Tirhuta
 
-  latn: DefaultShaper,   // Latin
-  DFLT: DefaultShaper    // Default
+  latn: DefaultShaper, // Latin
+  DFLT: DefaultShaper // Default
 };
 
 export function choose(script) {

@@ -20,7 +20,7 @@ describe('vhea table test', function () {
       caretSlopeRun: 1,
       caretOffset: 0,
       metricDataFormat: 0,
-      numberOfMetrics: 65167,
+      numberOfMetrics: 65167
     };
 
     assert.deepStrictEqual(actualVheaObject, expectedVheaObject, 'The vhea table does not match the expected format.');

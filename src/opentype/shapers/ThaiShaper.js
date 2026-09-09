@@ -89,7 +89,7 @@ const NOT_CONSONANT = 4;
 
 const AV = 0; // above-base vowel/mark
 const BV = 1; // below-base vowel/mark
-const T = 2;  // tone mark
+const T = 2; // tone mark
 const NOT_MARK = 3;
 
 function getConsonantType(u) {
@@ -102,10 +102,10 @@ function getConsonantType(u) {
 
 function getMarkType(u) {
   if (
-    u === 0x0E31 ||
-    (u >= 0x0E34 && u <= 0x0E37) ||
-    u === 0x0E47 ||
-    (u >= 0x0E4D && u <= 0x0E4E)
+    u === 0x0E31
+    || (u >= 0x0E34 && u <= 0x0E37)
+    || u === 0x0E47
+    || (u >= 0x0E4D && u <= 0x0E4E)
   ) {
     return AV;
   }
@@ -118,19 +118,19 @@ const T0 = 0, T1 = 1, T2 = 2, T3 = 3;
 const ABOVE_START_STATE = [T0, T1, T0, T0, T3]; // NC AC RC DC NOT_CONSONANT
 const ABOVE_STATE_MACHINE = [
   // AV          BV          T
-  [[NOP, T3], [NOP, T0], [SD, T3]],   // T0
-  [[SL, T2],  [NOP, T1], [SDL, T2]],  // T1
-  [[NOP, T3], [NOP, T2], [SL, T3]],   // T2
-  [[NOP, T3], [NOP, T3], [NOP, T3]]   // T3
+  [[NOP, T3], [NOP, T0], [SD, T3]], // T0
+  [[SL, T2], [NOP, T1], [SDL, T2]], // T1
+  [[NOP, T3], [NOP, T2], [SL, T3]], // T2
+  [[NOP, T3], [NOP, T3], [NOP, T3]] // T3
 ];
 
 const B0 = 0, B1 = 1, B2 = 2;
 const BELOW_START_STATE = [B0, B0, B1, B2, B2];
 const BELOW_STATE_MACHINE = [
   // AV          BV          T
-  [[NOP, B0], [NOP, B2], [NOP, B0]],  // B0
-  [[NOP, B1], [RD, B2],  [NOP, B1]],  // B1
-  [[NOP, B2], [SD, B2],  [NOP, B2]]   // B2
+  [[NOP, B0], [NOP, B2], [NOP, B0]], // B0
+  [[NOP, B1], [RD, B2], [NOP, B1]], // B1
+  [[NOP, B2], [SD, B2], [NOP, B2]] // B2
 ];
 
 // [original, Windows PUA, Mac PUA] per action
@@ -143,7 +143,7 @@ const PUA_MAPPINGS = {
     [0x0E4C, 0xF70E, 0xF897], // THANTHAKHAT
     [0x0E38, 0xF718, 0xF89B], // SARA U
     [0x0E39, 0xF719, 0xF89C], // SARA UU
-    [0x0E3A, 0xF71A, 0xF89D]  // PHINTHU
+    [0x0E3A, 0xF71A, 0xF89D] // PHINTHU
   ],
   [SDL]: [
     [0x0E48, 0xF705, 0xF88C],
@@ -164,11 +164,11 @@ const PUA_MAPPINGS = {
     [0x0E36, 0xF703, 0xF887], // SARA UE
     [0x0E37, 0xF704, 0xF888], // SARA UEE
     [0x0E47, 0xF712, 0xF889], // MAITAIKHU
-    [0x0E4D, 0xF711, 0xF899]  // NIKHAHIT
+    [0x0E4D, 0xF711, 0xF899] // NIKHAHIT
   ],
   [RD]: [
     [0x0E0D, 0xF70F, 0xF89A], // YO YING
-    [0x0E10, 0xF700, 0xF89E]  // THO THAN
+    [0x0E10, 0xF700, 0xF89E] // THO THAN
   ]
 };
 

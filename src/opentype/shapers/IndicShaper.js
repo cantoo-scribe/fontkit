@@ -1,7 +1,7 @@
 import DefaultShaper from './DefaultShaper';
 import StateMachine from 'dfa';
 import UnicodeTrie from '../../packages/unicode-trie/index.js';
-import {getCategory} from '../../packages/unicode-properties/index.js';
+import { getCategory } from '../../packages/unicode-properties/index.js';
 import * as Script from '../../layout/Script';
 import GlyphInfo from '../GlyphInfo';
 import indicMachine from './indic.json';
@@ -17,7 +17,7 @@ import {
 import { decodeBase64 } from '../../utils';
 import indicTrie from './indic.trie';
 
-const {decompositions} = useData;
+const { decompositions } = useData;
 const trie = new UnicodeTrie(decodeBase64(indicTrie));
 const stateMachine = new StateMachine(indicMachine);
 
@@ -69,7 +69,7 @@ export default class IndicShaper extends DefaultShaper {
       let codepoint = glyphs[i].codePoints[0];
       let d = INDIC_DECOMPOSITIONS[codepoint] || decompositions[codepoint];
       if (d) {
-        let decomposed = d.map(c => {
+        let decomposed = d.map((c) => {
           let g = plan.font.glyphForCodePoint(c);
           return new GlyphInfo(plan.font, g.id, [c], glyphs[i].features);
         });
@@ -145,7 +145,7 @@ function isHalantOrCoeng(glyph) {
 
 function wouldSubstitute(glyphs, feature) {
   for (let glyph of glyphs) {
-    glyph.features = {[feature]: true};
+    glyph.features = { [feature]: true };
   }
 
   let GSUB = glyphs[0]._font._layoutEngine.engine.GSUBProcessor;
@@ -183,7 +183,7 @@ function initialReordering(font, glyphs, plan) {
   }
 
   for (let start = 0, end = nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = nextSyllable(glyphs, start)) {
-    let {syllableType} = glyphs[start].shaperInfo;
+    let { syllableType } = glyphs[start].shaperInfo;
 
     if (syllableType === 'symbol_cluster' || syllableType === 'non_indic_cluster') {
       continue;
@@ -224,12 +224,12 @@ function initialReordering(font, glyphs, plan) {
     // If the syllable starts with Ra + Halant (in a script that has Reph)
     // and has more than one consonant, Ra is excluded from candidates for
     // base consonants.
-    if (indicConfig.rephPos !== POSITIONS.Ra_To_Become_Reph &&
-      features.rphf &&
-      start + 3 <= end && (
-        (indicConfig.rephMode === 'Implicit' && !isJoiner(glyphs[start + 2])) ||
-        (indicConfig.rephMode === 'Explicit' && glyphs[start + 2].shaperInfo.category === CATEGORIES.ZWJ)
-      )
+    if (indicConfig.rephPos !== POSITIONS.Ra_To_Become_Reph
+      && features.rphf
+      && start + 3 <= end && (
+      (indicConfig.rephMode === 'Implicit' && !isJoiner(glyphs[start + 2]))
+      || (indicConfig.rephMode === 'Explicit' && glyphs[start + 2].shaperInfo.category === CATEGORIES.ZWJ)
+    )
     ) {
       // See if it matches the 'rphf' feature.
       let g = [glyphs[start].copy(), glyphs[start + 1].copy(), glyphs[start + 2].copy()];
@@ -510,9 +510,9 @@ function initialReordering(font, glyphs, plan) {
       //
       // Test case: U+0924,U+094D,U+0930,U+094d,U+200D,U+0915
       for (let i = start; i + 1 < base; i++) {
-        if (glyphs[i].shaperInfo.category === CATEGORIES.Ra &&
-          glyphs[i + 1].shaperInfo.category === CATEGORIES.H &&
-          (i + 1 === base || glyphs[i + 2].shaperInfo.category === CATEGORIES.ZWJ)
+        if (glyphs[i].shaperInfo.category === CATEGORIES.Ra
+          && glyphs[i + 1].shaperInfo.category === CATEGORIES.H
+          && (i + 1 === base || glyphs[i + 2].shaperInfo.category === CATEGORIES.ZWJ)
         ) {
           glyphs[i].features.blwf = true;
           glyphs[i + 1].features.blwf = true;
@@ -715,9 +715,9 @@ function finalReordering(font, glyphs, plan) {
     // - If repha is encoded separately and in the logical position, we should only
     //   move it if it did NOT ligate.  If it ligated, it's probably the font trying
     //   to make it work without the reordering.
-    if (start + 1 < end &&
-      glyphs[start].shaperInfo.position === POSITIONS.Ra_To_Become_Reph &&
-      (glyphs[start].shaperInfo.category === CATEGORIES.Repha) !== (glyphs[start].isLigated && !glyphs[start].isMultiplied)
+    if (start + 1 < end
+      && glyphs[start].shaperInfo.position === POSITIONS.Ra_To_Become_Reph
+      && (glyphs[start].shaperInfo.category === CATEGORIES.Repha) !== (glyphs[start].isLigated && !glyphs[start].isMultiplied)
     ) {
       let newRephPos;
       let rephPos = indicConfig.rephPos;
@@ -838,9 +838,9 @@ function finalReordering(font, glyphs, plan) {
     if (tryPref && base + 1 < end) {
       for (let i = base + 1; i < end; i++) {
         if (glyphs[i].features.pref) {
-           // 1. Only reorder a glyph produced by substitution during application
-           //    of the <pref> feature. (Note that a font may shape a Ra consonant with
-           //    the feature generally but block it in certain contexts.)
+          // 1. Only reorder a glyph produced by substitution during application
+          //    of the <pref> feature. (Note that a font may shape a Ra consonant with
+          //    the feature generally but block it in certain contexts.)
 
           // Note: We just check that something got substituted.  We don't check that
           // the <pref> feature actually did it...

@@ -86,11 +86,11 @@ export default class DFont {
       let stream = new r.DecodeStream(this.stream.buffer.slice(pos));
       let font = new TTFFont(stream);
       if (
-        font.postscriptName === name ||
-        (
-          font.postscriptName instanceof Uint8Array && 
-          name instanceof Uint8Array && 
-          font.postscriptName.every((v, i) => name[i] === v)
+        font.postscriptName === name
+        || (
+          font.postscriptName instanceof Uint8Array
+          && name instanceof Uint8Array
+          && font.postscriptName.every((v, i) => name[i] === v)
         )
       ) {
         return font;

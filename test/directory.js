@@ -16,5 +16,4 @@ describe('metadata', function () {
     let dir = font.directory;
     assert.equal(Object.keys(dir.tables).length, dir.numTables);
   });
-
 });

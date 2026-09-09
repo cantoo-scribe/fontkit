@@ -1,5 +1,5 @@
 import * as r from 'restructure';
-import {BigMetrics} from './EBDT';
+import { BigMetrics } from './EBDT';
 
 let SBitLineMetrics = new r.Struct({
   ascender: r.int8,
@@ -74,7 +74,7 @@ let BitmapSizeTable = new r.Struct({
 });
 
 export default new r.Struct({
-  version:  r.uint32, // 0x00020000
+  version: r.uint32, // 0x00020000
   numSizes: r.uint32,
-  sizes:    new r.Array(BitmapSizeTable, 'numSizes')
+  sizes: new r.Array(BitmapSizeTable, 'numSizes')
 });

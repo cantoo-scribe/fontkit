@@ -1,35 +1,35 @@
 import * as r from 'restructure';
-import {getEncoding, LANGUAGES} from '../encodings';
+import { getEncoding, LANGUAGES } from '../encodings';
 
 let NameRecord = new r.Struct({
   platformID: r.uint16,
   encodingID: r.uint16,
   languageID: r.uint16,
-  nameID:     r.uint16,
-  length:     r.uint16,
-  string:     new r.Pointer(r.uint16,
+  nameID: r.uint16,
+  length: r.uint16,
+  string: new r.Pointer(r.uint16,
     new r.String('length', t => getEncoding(t.platformID, t.encodingID, t.languageID)),
     { type: 'parent', relativeTo: ctx => ctx.parent.stringOffset, allowNull: false }
   )
 });
 
 let LangTagRecord = new r.Struct({
-  length:  r.uint16,
-  tag:     new r.Pointer(r.uint16, new r.String('length', 'utf16be'), {type: 'parent', relativeTo: ctx => ctx.stringOffset})
+  length: r.uint16,
+  tag: new r.Pointer(r.uint16, new r.String('length', 'utf16be'), { type: 'parent', relativeTo: ctx => ctx.stringOffset })
 });
 
 var NameTable = new r.VersionedStruct(r.uint16, {
   0: {
-    count:          r.uint16,
-    stringOffset:   r.uint16,
-    records:        new r.Array(NameRecord, 'count')
+    count: r.uint16,
+    stringOffset: r.uint16,
+    records: new r.Array(NameRecord, 'count')
   },
   1: {
-    count:          r.uint16,
-    stringOffset:   r.uint16,
-    records:        new r.Array(NameRecord, 'count'),
-    langTagCount:   r.uint16,
-    langTags:       new r.Array(LangTagRecord, 'langTagCount')
+    count: r.uint16,
+    stringOffset: r.uint16,
+    records: new r.Array(NameRecord, 'count'),
+    langTagCount: r.uint16,
+    langTags: new r.Array(LangTagRecord, 'langTagCount')
   }
 });
 
@@ -61,7 +61,7 @@ const NAMES = [
   'wwsSubfamilyName',
   'lightBackgroundPalette',
   'darkBackgroundPalette',
-  'variationsPostScriptNamePrefix',
+  'variationsPostScriptNamePrefix'
 ];
 
 function pushEnRecord(out, nameID, string) {
@@ -77,8 +77,8 @@ function pushEnRecord(out, nameID, string) {
   });
 }
 
-NameTable.process = function(_stream) {
-  let records = {fontFeatures: {}};
+NameTable.process = function (_stream) {
+  let records = { fontFeatures: {} };
 
   for (let record of this.records) {
     let language = LANGUAGES[record.platformID][record.languageID];
@@ -112,7 +112,7 @@ NameTable.process = function(_stream) {
   this.records = records;
 };
 
-NameTable.preEncode = function() {
+NameTable.preEncode = function () {
   if (Array.isArray(this.records)) return;
   this.version = 0;
 

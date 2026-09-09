@@ -18,7 +18,7 @@ function decodeBase64(base64) {
 const trie = new UnicodeTrie(decodeBase64(trieBase64));
 
 const log2 = Math.log2 || (n => Math.log(n) / Math.LN2);
-const bits = (n) => ((log2(n) + 1) | 0);
+const bits = n => ((log2(n) + 1) | 0);
 
 // compute the number of bits stored for each field
 const CATEGORY_BITS = bits(data.categories.length - 1);
@@ -93,12 +93,12 @@ export function getNumericValue(codePoint) {
 export function isAlphabetic(codePoint) {
   const category = getCategory(codePoint);
   return (
-    category === 'Lu' ||
-    category === 'Ll' ||
-    category === 'Lt' ||
-    category === 'Lm' ||
-    category === 'Lo' ||
-    category === 'Nl'
+    category === 'Lu'
+    || category === 'Ll'
+    || category === 'Lt'
+    || category === 'Lm'
+    || category === 'Lo'
+    || category === 'Nl'
   );
 }
 
@@ -109,13 +109,13 @@ export function isDigit(codePoint) {
 export function isPunctuation(codePoint) {
   const category = getCategory(codePoint);
   return (
-    category === 'Pc' ||
-    category === 'Pd' ||
-    category === 'Pe' ||
-    category === 'Pf' ||
-    category === 'Pi' ||
-    category === 'Po' ||
-    category === 'Ps'
+    category === 'Pc'
+    || category === 'Pd'
+    || category === 'Pe'
+    || category === 'Pf'
+    || category === 'Pi'
+    || category === 'Po'
+    || category === 'Ps'
   );
 }
 
@@ -134,34 +134,34 @@ export function isTitleCase(codePoint) {
 export function isWhiteSpace(codePoint) {
   const category = getCategory(codePoint);
   return (
-    category === 'Zs' ||
-    category === 'Zl' ||
-    category === 'Zp'
+    category === 'Zs'
+    || category === 'Zl'
+    || category === 'Zp'
   );
 }
 
 export function isBaseForm(codePoint) {
   const category = getCategory(codePoint);
   return (
-    category === 'Nd' ||
-    category === 'No' ||
-    category === 'Nl' ||
-    category === 'Lu' ||
-    category === 'Ll' ||
-    category === 'Lt' ||
-    category === 'Lm' ||
-    category === 'Lo' ||
-    category === 'Me' ||
-    category === 'Mc'
+    category === 'Nd'
+    || category === 'No'
+    || category === 'Nl'
+    || category === 'Lu'
+    || category === 'Ll'
+    || category === 'Lt'
+    || category === 'Lm'
+    || category === 'Lo'
+    || category === 'Me'
+    || category === 'Mc'
   );
 }
 
 export function isMark(codePoint) {
   const category = getCategory(codePoint);
   return (
-    category === 'Mn' ||
-    category === 'Me' ||
-    category === 'Mc'
+    category === 'Mn'
+    || category === 'Me'
+    || category === 'Mc'
   );
 }
 

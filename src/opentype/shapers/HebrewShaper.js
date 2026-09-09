@@ -1,4 +1,4 @@
-import {getCombiningClass} from '../../packages/unicode-properties/index.js';
+import { getCombiningClass } from '../../packages/unicode-properties/index.js';
 import DefaultShaper from './DefaultShaper';
 import GlyphInfo from '../GlyphInfo';
 
@@ -56,7 +56,7 @@ function composeHebrewPair(a, b) {
 // Greedily compose adjacent pairs when the font has the glyph
 // (e.g. SHIN + SHIN_DOT → FB2A, then + DAGESH → FB2C).
 function composeHebrew(glyphs, font) {
-  for (let i = 0; i + 1 < glyphs.length; ) {
+  for (let i = 0; i + 1 < glyphs.length;) {
     let composed = glyphs[i].codePoints[0];
     let consumed = 1;
     while (i + consumed < glyphs.length) {
@@ -83,9 +83,9 @@ function reorderMarksHebrew(glyphs) {
     let c1 = getCombiningClass(glyphs[i - 1].codePoints[0]);
     let c2 = getCombiningClass(glyphs[i].codePoints[0]);
     if (
-      (c0 === 'CCC17' || c0 === 'CCC18') &&
-      (c1 === 'CCC10' || c1 === 'CCC14') &&
-      (c2 === 'CCC22' || c2 === 'Below')
+      (c0 === 'CCC17' || c0 === 'CCC18')
+      && (c1 === 'CCC10' || c1 === 'CCC14')
+      && (c2 === 'CCC22' || c2 === 'Below')
     ) {
       [glyphs[i - 1], glyphs[i]] = [glyphs[i], glyphs[i - 1]];
       break;

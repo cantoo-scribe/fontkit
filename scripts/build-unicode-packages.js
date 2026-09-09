@@ -22,7 +22,7 @@ async function buildDual({ dir, entryPoints, platform }) {
     target: 'es2020',
     sourcemap: true,
     external: ['fflate'],
-    logLevel: 'info',
+    logLevel: 'info'
   };
 
   await Promise.all([
@@ -30,7 +30,7 @@ async function buildDual({ dir, entryPoints, platform }) {
       ...shared,
       format: 'esm',
       outdir: 'dist',
-      outExtension: { '.js': '.mjs' },
+      outExtension: { '.js': '.mjs' }
     }),
     esbuild.build({
       ...shared,
@@ -39,9 +39,9 @@ async function buildDual({ dir, entryPoints, platform }) {
       outExtension: { '.js': '.cjs' },
       // So require('@cantoo/unicode-trie') returns the class, not { default }.
       footer: {
-        js: 'module.exports = module.exports.default ?? module.exports;',
-      },
-    }),
+        js: 'module.exports = module.exports.default ?? module.exports;'
+      }
+    })
   ]);
 }
 
@@ -51,20 +51,20 @@ cleanDist(propsDir);
 await buildDual({
   dir: trieDir,
   entryPoints: ['index.js'],
-  platform: 'neutral',
+  platform: 'neutral'
 });
 
 await buildDual({
   dir: trieDir,
   entryPoints: ['builder.js'],
-  platform: 'node',
+  platform: 'node'
 });
 
 await buildDual({
   dir: propsDir,
   entryPoints: ['index.js'],
   // Bundle sibling unicode-trie so fontkit subpath users need no extra package.
-  platform: 'neutral',
+  platform: 'neutral'
 });
 
 console.log('Built unicode-trie and unicode-properties (esm + cjs)');

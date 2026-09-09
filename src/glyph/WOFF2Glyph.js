@@ -26,7 +26,7 @@ export default class WOFF2Glyph extends TTFGlyph {
       xMin: 0,
       yMin: 0,
       xMax: 0,
-      yMax: 0,
+      yMax: 0
     };
 
     if (cached.points) {
@@ -37,7 +37,7 @@ export default class WOFF2Glyph extends TTFGlyph {
     }
 
     if (cached.components) {
-      glyph.components = cached.components.map(c => {
+      glyph.components = cached.components.map((c) => {
         return Object.assign(Object.create(Object.getPrototypeOf(c)), c);
       });
 

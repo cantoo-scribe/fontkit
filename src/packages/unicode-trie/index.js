@@ -46,7 +46,7 @@ const INDEX_2_BMP_LENGTH = LSCP_INDEX_2_OFFSET + LSCP_INDEX_2_LENGTH;
 // The 2-byte UTF-8 version of the index-2 table follows at offset 2080=0x820.
 // Length 32=0x20 for lead bytes C0..DF, regardless of SHIFT_2.
 const UTF8_2B_INDEX_2_OFFSET = INDEX_2_BMP_LENGTH;
-const UTF8_2B_INDEX_2_LENGTH = 0x800 >> 6;  // U+0800 is the first code point after 2-byte UTF-8
+const UTF8_2B_INDEX_2_LENGTH = 0x800 >> 6; // U+0800 is the first code point after 2-byte UTF-8
 
 // The index-1 table, only used for supplementary code points, at offset 2112=0x840.
 // Variable length, for code points up to highStart, where the last single-value range starts.
@@ -90,7 +90,6 @@ class UnicodeTrie {
       swap32LE(data);
 
       this.data = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
-
     } else {
       // pre-parsed data
       ({ data: this.data, highStart: this.highStart, errorValue: this.errorValue } = data);

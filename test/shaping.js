@@ -16,7 +16,7 @@ describe('shaping', function () {
         let pos = positions[i];
         let x = `${glyph.id}`;
         if (pos.xOffset || pos.yOffset) {
-          x += `@${pos.xOffset},${pos.yOffset}`
+          x += `@${pos.xOffset},${pos.yOffset}`;
         }
 
         x += `+${pos.xAdvance}`;
@@ -24,7 +24,7 @@ describe('shaping', function () {
       }
 
       return assert.equal(res.join('|'), output);
-    })
+    });
   };
 
   describe('general shaping tests', function () {
@@ -49,12 +49,12 @@ describe('shaping', function () {
       '18@652,-180+0|226+1350|574@0,279+90|825@0,707+176|825@0,1058+176|825@0,1409+176|825@0,1760+176|509@0,2111+636');
 
     test('should shape Mongolian text', 'NotoSans/NotoSansMongolian-Regular.ttf', 'ᠬᠦᠮᠦᠨ ᠪᠦᠷ ᠲᠥᠷᠥᠵᠦ ᠮᠡᠨᠳᠡᠯᠡᠬᠦ ᠡᠷᠬᠡ',
-      '488+2417|193+582|945+1174|56+874|3+532|358+2507|32+1032|3+532|35+1372|942+1778|31+1145|943+1174|101+1085|' +
-      '342+1298|3+532|206+1008|64+582|946+582|957+1255|64+582|75+582|64+582|493+1438|3+532|62+1008|31+1145|396+1993');
+      '488+2417|193+582|945+1174|56+874|3+532|358+2507|32+1032|3+532|35+1372|942+1778|31+1145|943+1174|101+1085|'
+      + '342+1298|3+532|206+1008|64+582|946+582|957+1255|64+582|75+582|64+582|493+1438|3+532|62+1008|31+1145|396+1993');
 
     test('should shape Syriac text', 'NotoSans/NotoSansSyriacEstrangela-Regular.ttf', 'ܚܐܪܐ ܘܒܪܒܪ ܓܘ ܐܝܩܪܐ ܘܙܕܩܐ.',
-      '218+545|11+1781|94+1362|26@35,0+1139|34+564|32+1250|3+532|9+1904|96+1088|93+1383|51+569|8+1904|' +
-      '3+532|33+1225|21+1470|3+532|96+1088|17+1496|96+1088|17+1496|32+1250|3+532|9+1904|95+1104|12+1781|39+1052');
+      '218+545|11+1781|94+1362|26@35,0+1139|34+564|32+1250|3+532|9+1904|96+1088|93+1383|51+569|8+1904|'
+      + '3+532|33+1225|21+1470|3+532|96+1088|17+1496|96+1088|17+1496|32+1250|3+532|9+1904|95+1104|12+1781|39+1052');
 
     test('should match chain context backtrack in OpenType spec order',
       'NotoSans/NotoSansSyriacEstrangela-Regular.ttf', 'ܒܱܓ',
@@ -65,12 +65,12 @@ describe('shaping', function () {
       '86@873,-335+0|83@253,495+0|111@273,-95+0|8+568');
 
     test('should shape N\'Ko text', 'NotoSans/NotoSansNKo-Regular.ttf', 'ߞߊ߬ ߞߐߕߐ߮ ߞߎߘߊ ߘߏ߫ ߘߊߦߟߍ߬ ߸ ߏ߬',
-      '52@10,-300+0|23+1128|3+532|64+985|3+532|52@150,-300+0|84+1268|139+1184|160+1067|76+543|119+1622|3+532|51@10,-300+0|90+1128' +
-      '|119+1622|3+532|75+543|118+1622|88+1212|137+1114|3+532|54@170,0+0|93+1321|109+1155|94+1321|137+1114|3+532|52@-210,0+0|75+543|137+1114');
+      '52@10,-300+0|23+1128|3+532|64+985|3+532|52@150,-300+0|84+1268|139+1184|160+1067|76+543|119+1622|3+532|51@10,-300+0|90+1128'
+      + '|119+1622|3+532|75+543|118+1622|88+1212|137+1114|3+532|54@170,0+0|93+1321|109+1155|94+1321|137+1114|3+532|52@-210,0+0|75+543|137+1114');
 
     test('should shape Phags Pa text', 'NotoSans/NotoSansPhagsPa-Regular.ttf', 'ꡀꡁꡂꡃ ꡄꡅꡆꡇ ꡈꡉꡊꡋ ꡌꡍꡎꡏ',
-      '100+1491|212+1462|217+1462|87+1386|3+532|161+1677|168+1427|148+1532|329+1122|3+532|112+1614' +
-      '|153+1491|158+1073|107+1231|3+532|171+1686|178+1542|313+1542|115+1231');
+      '100+1491|212+1462|217+1462|87+1386|3+532|161+1677|168+1427|148+1532|329+1122|3+532|112+1614'
+      + '|153+1491|158+1073|107+1231|3+532|171+1686|178+1542|313+1542|115+1231');
 
     test('should attach marks to the first base of a multiple substitution', 'amiri/amiri-regular.ttf', 'الله', '1824+721|461@-267,-162+0|430@-277,-440+0|6714+0|1823+473|1822+319|388+446');
 
@@ -628,41 +628,41 @@ describe('shaping', function () {
   describe('universal shaping engine', function () {
     describe('shapes balinese text', function () {
       // Tests from https://github.com/unicode-org/text-rendering-tests
-      test('SHBALI-1/1', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬸᬀ", '23+2275|60@5,0+0|4@-95,0+0');
-      test('SHBALI-1/2', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬕ᭄ᬖᬂ", '25+2237|132+0|6@-307,0+0');
-      test('SHBALI-1/3', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬘᬻ", '28+1627|62@3,0+0|57+916');
-      test('SHBALI-1/4', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬙᭀ", '66+990|29+2155|57+916');
-      test('SHBALI-1/5', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬚᬿ", '67+990|30+1800');
-      test('SHBALI-1/6', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬔᬶ", '24+2316|58@-620,0+0');
-      test('SHBALI-1/7', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬓᬁ", '23+2275|129+0|5@-95,0+0');
-      test('SHBALI-1/8', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬛᬁ", '23+2275|137+0|5@550,370+0');
-      test('SHBALI-1/9', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬦᬃ", '23+2275|148+0|7@-245,0+0');
-      test('SHBALI-1/10', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬓᬸ", '23+2275|129+0|60@0,-1000+0');
-      test('SHBALI-1/11', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬓᬼ", '23+2275|129+0|70@35,0+0|170@5,0+0');
-      test('SHBALI-1/12', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬓᬽ", '23+2275|129+0|70@35,0+0|170@5,0+0|57+916');
-      test('SHBALI-1/13', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬾ", '66+990|23+2275');
-      test('SHBALI-1/14', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬶᬾ", '23+2275|58@-95,0+0|66+990|128+1127');
-      test('SHBALI-1/15', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬸᬾ", '23+2275|60@5,0+0|66+990|128+1127');
-      test('SHBALI-1/16', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬕᬾ", '66+990|23+2275|131+0');
-      test('SHBALI-1/17', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᭀ", '66+990|23+2275|57+916');
-      test('SHBALI-1/18', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬾ", '66+990|23+2275');
-      test('SHBALI-1/19', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬾᬶ", '66+990|23+2275|58@-95,0+0');
-      test('SHBALI-1/20', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᬾᬸ", '66+990|23+2275|60@5,0+0');
-      test('SHBALI-1/21', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬕᬾ", '66+990|23+2275|131+0');
-      test('SHBALI-1/22', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓᭀ", '66+990|23+2275|57+916');
+      test('SHBALI-1/1', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬸᬀ', '23+2275|60@5,0+0|4@-95,0+0');
+      test('SHBALI-1/2', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬕ᭄ᬖᬂ', '25+2237|132+0|6@-307,0+0');
+      test('SHBALI-1/3', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬘᬻ', '28+1627|62@3,0+0|57+916');
+      test('SHBALI-1/4', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬙᭀ', '66+990|29+2155|57+916');
+      test('SHBALI-1/5', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬚᬿ', '67+990|30+1800');
+      test('SHBALI-1/6', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬔᬶ', '24+2316|58@-620,0+0');
+      test('SHBALI-1/7', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬓᬁ', '23+2275|129+0|5@-95,0+0');
+      test('SHBALI-1/8', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬛᬁ', '23+2275|137+0|5@550,370+0');
+      test('SHBALI-1/9', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬦᬃ', '23+2275|148+0|7@-245,0+0');
+      test('SHBALI-1/10', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬓᬸ', '23+2275|129+0|60@0,-1000+0');
+      test('SHBALI-1/11', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬓᬼ', '23+2275|129+0|70@35,0+0|170@5,0+0');
+      test('SHBALI-1/12', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬓᬽ', '23+2275|129+0|70@35,0+0|170@5,0+0|57+916');
+      test('SHBALI-1/13', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬾ', '66+990|23+2275');
+      test('SHBALI-1/14', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬶᬾ', '23+2275|58@-95,0+0|66+990|128+1127');
+      test('SHBALI-1/15', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬸᬾ', '23+2275|60@5,0+0|66+990|128+1127');
+      test('SHBALI-1/16', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬕᬾ', '66+990|23+2275|131+0');
+      test('SHBALI-1/17', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᭀ', '66+990|23+2275|57+916');
+      test('SHBALI-1/18', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬾ', '66+990|23+2275');
+      test('SHBALI-1/19', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬾᬶ', '66+990|23+2275|58@-95,0+0');
+      test('SHBALI-1/20', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᬾᬸ', '66+990|23+2275|60@5,0+0');
+      test('SHBALI-1/21', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬕᬾ', '66+990|23+2275|131+0');
+      test('SHBALI-1/22', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓᭀ', '66+990|23+2275|57+916');
 
-      test('SHBALI-2/1', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬧᬾ", '66+990|23+2275|149+1315');
-      test('SHBALI-2/2', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬨᬿ", '67+990|23+2275|150+1228');
-      test('SHBALI-2/3', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬱᬾ", '66+990|23+2275|159+1315');
-      test('SHBALI-2/4', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬲᬾ", '66+990|23+2275|60@5,0+0|149+1315');
-      test('SHBALI-2/5', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᭊᬾ", '66+990|23+2275|60@5,0+0|165+1315');
-      test('SHBALI-2/6', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬛ᭄ᬓ", '181+2473|129@-293,-400+0');
-      test('SHBALI-2/7', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬛ᭄ᬓᬾ", '66+990|181+2473|129@-293,-400+0');
-      test('SHBALI-2/8', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬛ᭄ᬓᬸᬀ", '181+2473|129@-293,-400+0|60@-293,-1400+0|4@-722,0+0');
-      test('SHBALI-2/9', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬓᬸ", '23+2275|129+0|60@0,-1000+0');
-      test('SHBALI-2/10', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬛᬹ", '23+2275|137+0|61@308,-1000+0');
-      test('SHBALI-2/11', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᬱᬺ", '23+2275|159+1315|62+0');
-      test('SHBALI-2/12', 'NotoSans/NotoSansBalinese-Regular.ttf', "ᬓ᭄ᭅᬸ", '23+2275|162+0|60@0,-1000+0');
+      test('SHBALI-2/1', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬧᬾ', '66+990|23+2275|149+1315');
+      test('SHBALI-2/2', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬨᬿ', '67+990|23+2275|150+1228');
+      test('SHBALI-2/3', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬱᬾ', '66+990|23+2275|159+1315');
+      test('SHBALI-2/4', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬲᬾ', '66+990|23+2275|60@5,0+0|149+1315');
+      test('SHBALI-2/5', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᭊᬾ', '66+990|23+2275|60@5,0+0|165+1315');
+      test('SHBALI-2/6', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬛ᭄ᬓ', '181+2473|129@-293,-400+0');
+      test('SHBALI-2/7', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬛ᭄ᬓᬾ', '66+990|181+2473|129@-293,-400+0');
+      test('SHBALI-2/8', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬛ᭄ᬓᬸᬀ', '181+2473|129@-293,-400+0|60@-293,-1400+0|4@-722,0+0');
+      test('SHBALI-2/9', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬓᬸ', '23+2275|129+0|60@0,-1000+0');
+      test('SHBALI-2/10', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬛᬹ', '23+2275|137+0|61@308,-1000+0');
+      test('SHBALI-2/11', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᬱᬺ', '23+2275|159+1315|62+0');
+      test('SHBALI-2/12', 'NotoSans/NotoSansBalinese-Regular.ttf', 'ᬓ᭄ᭅᬸ', '23+2275|162+0|60@0,-1000+0');
     });
   });
 

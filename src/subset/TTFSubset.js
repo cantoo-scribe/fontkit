@@ -6,7 +6,7 @@ import TTFGlyphEncoder from '../glyph/TTFGlyphEncoder';
 export default class TTFSubset extends Subset {
   constructor(font) {
     super(font);
-    this.glyphEncoder = new TTFGlyphEncoder;
+    this.glyphEncoder = new TTFGlyphEncoder();
   }
 
   _addGlyph(gid) {
@@ -109,7 +109,7 @@ export default class TTFSubset extends Subset {
 
     // TODO: subset prep, cvt, fpgm?
     // The following is the minimum set of tables.
-    let t =  {
+    let t = {
       head,
       hhea,
       loca: this.loca,
@@ -118,13 +118,13 @@ export default class TTFSubset extends Subset {
       prep: this.font.prep,
       glyf: this.glyf,
       hmtx: this.hmtx,
-      fpgm: this.font.fpgm,
-    }
+      fpgm: this.font.fpgm
+    };
 
     for (const tag of this.includedTables) {
       t[tag] = cloneDeep(this.font[tag]);
     }
 
-    return Directory.toBuffer({tables: t});
+    return Directory.toBuffer({ tables: t });
   }
 }

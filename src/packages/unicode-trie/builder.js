@@ -1,6 +1,6 @@
-import { deflateSync } from "fflate";
-import UnicodeTrie from "./index.js";
-import { swap32LE } from "./swap.js";
+import { deflateSync } from 'fflate';
+import UnicodeTrie from './index.js';
+import { swap32LE } from './swap.js';
 
 // Shift size for getting the index-1 table offset.
 const SHIFT_1 = 6 + 5;
@@ -57,7 +57,7 @@ const INDEX_2_BMP_LENGTH = LSCP_INDEX_2_OFFSET + LSCP_INDEX_2_LENGTH;
 // The 2-byte UTF-8 version of the index-2 table follows at offset 2080=0x820.
 // Length 32=0x20 for lead bytes C0..DF, regardless of SHIFT_2.
 const UTF8_2B_INDEX_2_OFFSET = INDEX_2_BMP_LENGTH;
-const UTF8_2B_INDEX_2_LENGTH = 0x800 >> 6;  // U+0800 is the first code point after 2-byte UTF-8
+const UTF8_2B_INDEX_2_LENGTH = 0x800 >> 6; // U+0800 is the first code point after 2-byte UTF-8
 
 // The index-1 table, only used for supplementary code points, at offset 2112=0x840.
 // Variable length, for code points up to highStart, where the last single-value range starts.
@@ -189,7 +189,7 @@ class UnicodeTrieBuilder {
       this.data[i] = this.initialValue;
     }
 
-    for (i = i; i < 0xc0; i++) {
+    for (; i < 0xc0; i++) {
       this.data[i] = this.errorValue;
     }
 
@@ -208,7 +208,7 @@ class UnicodeTrieBuilder {
     }
 
     // reference counts for the bad-UTF-8-data block
-    for (j = j; j < 0xc0; j += DATA_BLOCK_LENGTH) {
+    for (; j < 0xc0; j += DATA_BLOCK_LENGTH) {
       this.map[i++] = 0;
     }
 
@@ -218,7 +218,7 @@ class UnicodeTrieBuilder {
     // i==newTrie->dataNullOffset
     this.map[i++] = ((0x110000 >> SHIFT_2) - (0x80 >> SHIFT_2)) + 1 + LSCP_INDEX_2_LENGTH;
     j += DATA_BLOCK_LENGTH;
-    for (j = j; j < NEW_DATA_START_OFFSET; j += DATA_BLOCK_LENGTH) {
+    for (; j < NEW_DATA_START_OFFSET; j += DATA_BLOCK_LENGTH) {
       this.map[i++] = 0;
     }
 
@@ -250,7 +250,7 @@ class UnicodeTrieBuilder {
     }
 
     // set the remaining index-1 indexes to the null index-2 block
-    for (i = i; i < INDEX_1_LENGTH; i++) {
+    for (; i < INDEX_1_LENGTH; i++) {
       this.index1[i] = INDEX_2_NULL_OFFSET;
     }
 
@@ -260,7 +260,6 @@ class UnicodeTrieBuilder {
     for (i = 0x80; i < 0x800; i += DATA_BLOCK_LENGTH) {
       this.set(i, this.initialValue);
     }
-
   }
 
   set(codePoint, value) {
@@ -346,7 +345,6 @@ class UnicodeTrieBuilder {
           // protected block: just write the values into this block
           this._fillBlock(block, 0, DATA_BLOCK_LENGTH, value, this.initialValue, overwrite);
         }
-
       } else if ((this.data[block] !== value) && (overwrite || (block === this.dataNullOffset))) {
         // Set the repeatBlock instead of the null block or previous repeat block:
         //
@@ -429,7 +427,7 @@ class UnicodeTrieBuilder {
       // Should never occur.
       // Either MAX_BUILD_TIME_INDEX_LENGTH is incorrect,
       // or the code writes more values than should be possible.
-      throw new Error("Internal error in Trie2 creation.");
+      throw new Error('Internal error in Trie2 creation.');
     }
 
     this.index2Length = newTop;
@@ -478,7 +476,7 @@ class UnicodeTrieBuilder {
           // Should never occur.
           // Either MAX_DATA_LENGTH_BUILDTIME is incorrect,
           // or the code writes more values than should be possible.
-          throw new Error("Internal error in Trie2 creation.");
+          throw new Error('Internal error in Trie2 creation.');
         }
 
         const newData = new Uint32Array(capacity);
@@ -502,7 +500,7 @@ class UnicodeTrieBuilder {
   }
 
   _setIndex2Entry(i2, block) {
-    ++this.map[block >> SHIFT_2];  // increment first, in case block == oldBlock!
+    ++this.map[block >> SHIFT_2]; // increment first, in case block == oldBlock!
     const oldBlock = this.index2[i2];
     if (--this.map[oldBlock >> SHIFT_2] === 0) {
       this._releaseDataBlock(oldBlock);
@@ -719,7 +717,6 @@ class UnicodeTrieBuilder {
         for (i = blockLength - overlap; i > 0; i--) {
           this.data[newStart++] = this.data[start++];
         }
-
       } else { // no overlap && newStart==start
         mapIndex = start >> SHIFT_2;
         for (i = blockCount; i > 0; i--) {
@@ -799,7 +796,6 @@ class UnicodeTrieBuilder {
         for (i = INDEX_2_BLOCK_LENGTH - overlap; i > 0; i--) {
           this.index2[newStart++] = this.index2[start++];
         }
-
       } else { // no overlap && newStart==start
         this.map[start >> SHIFT_1_2] = start;
         start += INDEX_2_BLOCK_LENGTH;
@@ -876,11 +872,11 @@ class UnicodeTrieBuilder {
     const dataMove = allIndexesLength;
 
     // are indexLength and dataLength within limits?
-    if ((allIndexesLength > MAX_INDEX_LENGTH) || // for unshifted indexLength
-      ((dataMove + this.dataNullOffset) > 0xffff) || // for unshifted dataNullOffset
-      ((dataMove + DATA_0800_OFFSET) > 0xffff) || // for unshifted 2-byte UTF-8 index-2 values
-      ((dataMove + this.dataLength) > MAX_DATA_LENGTH_RUNTIME)) { // for shiftedDataLength
-      throw new Error("Trie data is too large.");
+    if ((allIndexesLength > MAX_INDEX_LENGTH) // for unshifted indexLength
+      || ((dataMove + this.dataNullOffset) > 0xffff) // for unshifted dataNullOffset
+      || ((dataMove + DATA_0800_OFFSET) > 0xffff) // for unshifted 2-byte UTF-8 index-2 values
+      || ((dataMove + this.dataLength) > MAX_DATA_LENGTH_RUNTIME)) { // for shiftedDataLength
+      throw new Error('Trie data is too large.');
     }
 
     // calculate the sizes of, and allocate, the index and data arrays
@@ -898,7 +894,7 @@ class UnicodeTrieBuilder {
       data[destIdx++] = (dataMove + BAD_UTF8_DATA_OFFSET);
     }
 
-    for (i = i; i < 0xe0 - 0xc0; i++) { // C2..DF
+    for (; i < 0xe0 - 0xc0; i++) { // C2..DF
       data[destIdx++] = (dataMove + this.index2[i << (6 - SHIFT_2)]);
     }
 

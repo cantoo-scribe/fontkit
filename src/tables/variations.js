@@ -1,7 +1,7 @@
-import {Feature} from './opentype';
+import { Feature } from './opentype';
 import * as r from 'restructure';
 
-/*******************
+/** *****************
  * Variation Store *
  *******************/
 
@@ -39,7 +39,7 @@ export let ItemVariationStore = new r.Struct({
   itemVariationData: new r.Array(new r.Pointer(r.uint32, ItemVariationData), 'variationDataCount')
 });
 
-/**********************
+/** ********************
  * Feature Variations *
  **********************/
 
@@ -58,7 +58,7 @@ let ConditionSet = new r.Struct({
 
 let FeatureTableSubstitutionRecord = new r.Struct({
   featureIndex: r.uint16,
-  alternateFeatureTable: new r.Pointer(r.uint32, Feature, {type: 'parent'})
+  alternateFeatureTable: new r.Pointer(r.uint32, Feature, { type: 'parent' })
 });
 
 let FeatureTableSubstitution = new r.Struct({
@@ -68,8 +68,8 @@ let FeatureTableSubstitution = new r.Struct({
 });
 
 let FeatureVariationRecord = new r.Struct({
-  conditionSet: new r.Pointer(r.uint32, ConditionSet, {type: 'parent'}),
-  featureTableSubstitution: new r.Pointer(r.uint32, FeatureTableSubstitution, {type: 'parent'})
+  conditionSet: new r.Pointer(r.uint32, ConditionSet, { type: 'parent' }),
+  featureTableSubstitution: new r.Pointer(r.uint32, FeatureTableSubstitution, { type: 'parent' })
 });
 
 export let FeatureVariations = new r.Struct({

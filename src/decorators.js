@@ -6,7 +6,7 @@
 export function cache(target, key, descriptor) {
   if (descriptor.get) {
     let get = descriptor.get;
-    descriptor.get = function() {
+    descriptor.get = function () {
       let value = get.call(this);
       Object.defineProperty(this, key, { value });
       return value;
@@ -16,7 +16,7 @@ export function cache(target, key, descriptor) {
 
     return {
       get() {
-        let cache = new Map;
+        let cache = new Map();
         function memoized(...args) {
           let key = args.length > 0 ? args[0] : 'value';
           if (cache.has(key)) {
@@ -28,7 +28,7 @@ export function cache(target, key, descriptor) {
           return result;
         };
 
-        Object.defineProperty(this, key, {value: memoized});
+        Object.defineProperty(this, key, { value: memoized });
         return memoized;
       }
     };

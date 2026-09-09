@@ -1,4 +1,4 @@
-import {getCombiningClass} from '../packages/unicode-properties/index.js';
+import { getCombiningClass } from '../packages/unicode-properties/index.js';
 
 /**
  * This class is used when GPOS does not define 'mark' or 'mkmk' features
@@ -125,7 +125,6 @@ export default class UnicodeLayoutEngine {
         position.xAdvance = position.yAdvance = 0;
         position.xOffset += xOffset;
         position.yOffset += yOffset;
-
       } else {
         xOffset -= position.xAdvance;
         yOffset -= position.yAdvance;
@@ -203,7 +202,7 @@ export default class UnicodeLayoutEngine {
       case 'CCC21': // dagesh
         break;
 
-      // Arabic and Syriac
+        // Arabic and Syriac
 
       case 'CCC27': // fathatan
       case 'CCC28': // dammatan
@@ -219,7 +218,7 @@ export default class UnicodeLayoutEngine {
       case 'CCC32': // kasra
         return 'Below';
 
-      // Thai
+        // Thai
 
       case 'CCC103': // sara u / sara uu
         return 'Below_Right';
@@ -227,7 +226,7 @@ export default class UnicodeLayoutEngine {
       case 'CCC107': // mai
         return 'Above_Right';
 
-      // Lao
+        // Lao
 
       case 'CCC118': // sign u / sign uu
         return 'Below';
@@ -235,7 +234,7 @@ export default class UnicodeLayoutEngine {
       case 'CCC122': // mai
         return 'Above';
 
-      // Tibetan
+        // Tibetan
 
       case 'CCC129': // sign aa
       case 'CCC132': // sign u

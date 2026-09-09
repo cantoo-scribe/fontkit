@@ -9,7 +9,7 @@ let loca = new r.VersionedStruct('head.indexToLocFormat', {
   }
 });
 
-loca.process = function() {
+loca.process = function () {
   if (this.version === 0 && !this._processed) {
     for (let i = 0; i < this.offsets.length; i++) {
       this.offsets[i] <<= 1;
@@ -18,7 +18,7 @@ loca.process = function() {
   }
 };
 
-loca.preEncode = function() {
+loca.preEncode = function () {
   if (this.version === 0 && this._processed !== false) {
     for (let i = 0; i < this.offsets.length; i++) {
       this.offsets[i] >>>= 1;

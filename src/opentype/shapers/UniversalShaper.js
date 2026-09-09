@@ -6,7 +6,7 @@ import useData from './use.json';
 import { decodeBase64 } from '../../utils';
 import useTrie from './use.trie';
 
-const {categories, decompositions} = useData;
+const { categories, decompositions } = useData;
 const trie = new UnicodeTrie(decodeBase64(useTrie));
 const stateMachine = new StateMachine(useData);
 
@@ -49,7 +49,7 @@ export default class UniversalShaper extends DefaultShaper {
     for (let i = glyphs.length - 1; i >= 0; i--) {
       let codepoint = glyphs[i].codePoints[0];
       if (decompositions[codepoint]) {
-        let decomposed = decompositions[codepoint].map(c => {
+        let decomposed = decompositions[codepoint].map((c) => {
           let g = plan.font.glyphForCodePoint(c);
           return new GlyphInfo(plan.font, g.id, [c], glyphs[i].features);
         });

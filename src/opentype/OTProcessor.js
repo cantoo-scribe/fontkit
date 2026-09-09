@@ -175,7 +175,7 @@ export default class OTProcessor {
   }
 
   variationConditionsMatch(conditions, coords) {
-    return conditions.every(condition => {
+    return conditions.every((condition) => {
       let coord = condition.axisIndex < coords.length ? coords[condition.axisIndex] : 0;
       return condition.filterRangeMinValue <= coord && coord <= condition.filterRangeMaxValue;
     });
@@ -221,7 +221,7 @@ export default class OTProcessor {
   }
 
   applyLookup(_lookup, _table) {
-    throw new Error("applyLookup must be implemented by subclasses");
+    throw new Error('applyLookup must be implemented by subclasses');
   }
 
   applyLookupList(lookupRecords) {
@@ -447,9 +447,9 @@ export default class OTProcessor {
         }
 
         for (let rule of rules) {
-          if (this.classSequenceMatches(-rule.backtrack.length, [...rule.backtrack].reverse(), table.backtrackClassDef) &&
-            this.classSequenceMatches(1, rule.input, table.inputClassDef) &&
-            this.classSequenceMatches(1 + rule.input.length, rule.lookahead, table.lookaheadClassDef)) {
+          if (this.classSequenceMatches(-rule.backtrack.length, [...rule.backtrack].reverse(), table.backtrackClassDef)
+            && this.classSequenceMatches(1, rule.input, table.inputClassDef)
+            && this.classSequenceMatches(1 + rule.input.length, rule.lookahead, table.lookaheadClassDef)) {
             return this.applyLookupList(rule.lookupRecords);
           }
         }
@@ -458,9 +458,9 @@ export default class OTProcessor {
       }
 
       case 3:
-        if (this.coverageSequenceMatches(-table.backtrackGlyphCount, [...table.backtrackCoverage].reverse()) &&
-          this.coverageSequenceMatches(0, table.inputCoverage) &&
-          this.coverageSequenceMatches(table.inputGlyphCount, table.lookaheadCoverage)) {
+        if (this.coverageSequenceMatches(-table.backtrackGlyphCount, [...table.backtrackCoverage].reverse())
+          && this.coverageSequenceMatches(0, table.inputCoverage)
+          && this.coverageSequenceMatches(table.inputGlyphCount, table.lookaheadCoverage)) {
           return this.applyLookupList(table.lookupRecords);
         }
 

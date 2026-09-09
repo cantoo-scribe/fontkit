@@ -24,7 +24,7 @@ export default class AATLayoutEngine {
 
   stringsForGlyph(gid) {
     let glyphStrings = this.morxProcessor.generateInputs(gid);
-    let result = new Set;
+    let result = new Set();
 
     for (let glyphs of glyphStrings) {
       this._addStrings(glyphs, 0, result, '');

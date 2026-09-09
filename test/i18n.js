@@ -37,7 +37,7 @@ describe('i18n', function () {
 
     it('can reset default language back to "en"', function () {
       fontkit.setDefaultLanguage();
-      assert.equal(fontkit.defaultLanguage, "en");
+      assert.equal(fontkit.defaultLanguage, 'en');
     });
   });
 

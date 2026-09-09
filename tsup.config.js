@@ -10,14 +10,14 @@ const shared = {
     options.loader = {
       ...options.loader,
       '.js': 'ts',
-      '.trie': 'base64',
+      '.trie': 'base64'
     };
     options.tsconfigRaw = {
       compilerOptions: {
-        experimentalDecorators: true,
-      },
+        experimentalDecorators: true
+      }
     };
-  },
+  }
 };
 
 export default defineConfig([
@@ -28,7 +28,7 @@ export default defineConfig([
     platform: 'node',
     outExtension() {
       return { js: '.cjs' };
-    },
+    }
   },
   {
     ...shared,
@@ -37,7 +37,7 @@ export default defineConfig([
     platform: 'node',
     outExtension() {
       return { js: '.mjs' };
-    },
+    }
   },
   {
     ...shared,
@@ -46,7 +46,7 @@ export default defineConfig([
     platform: 'browser',
     outExtension() {
       return { js: '.cjs' };
-    },
+    }
   },
   {
     ...shared,
@@ -55,6 +55,6 @@ export default defineConfig([
     platform: 'browser',
     outExtension() {
       return { js: '.mjs' };
-    },
-  },
+    }
+  }
 ]);

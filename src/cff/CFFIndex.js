@@ -71,7 +71,7 @@ export default class CFFIndex {
       return size;
     }
 
-    let type = this.type || new r.Buffer;
+    let type = this.type || new r.Buffer();
 
     // find maximum offset to detminine offset type
     let offset = 1;
@@ -90,7 +90,7 @@ export default class CFFIndex {
     } else if (offset <= 0xffffffff) {
       offsetType = r.uint32;
     } else {
-      throw new Error("Bad offset in CFFIndex");
+      throw new Error('Bad offset in CFFIndex');
     }
 
     size += 1 + offsetType.size() * (arr.length + 1);
@@ -105,7 +105,7 @@ export default class CFFIndex {
       return;
     }
 
-    let type = this.type || new r.Buffer;
+    let type = this.type || new r.Buffer();
 
     // find maximum offset to detminine offset type
     let sizes = [];
@@ -126,7 +126,7 @@ export default class CFFIndex {
     } else if (offset <= 0xffffffff) {
       offsetType = r.uint32;
     } else {
-      throw new Error("Bad offset in CFFIndex");
+      throw new Error('Bad offset in CFFIndex');
     }
 
     // write offset size

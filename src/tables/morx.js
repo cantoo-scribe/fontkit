@@ -16,12 +16,12 @@ let InsertionData = {
 };
 
 let SubstitutionTable = new r.Struct({
-  items: new UnboundedArray(new r.Pointer(r.uint32, new LookupTable))
+  items: new UnboundedArray(new r.Pointer(r.uint32, new LookupTable()))
 });
 
 let SubtableData = new r.VersionedStruct('type', {
   0: { // Indic Rearrangement Subtable
-    stateTable: new StateTable
+    stateTable: new StateTable()
   },
 
   1: { // Contextual Glyph Substitution Subtable
@@ -37,7 +37,7 @@ let SubtableData = new r.VersionedStruct('type', {
   },
 
   4: { // Non-contextual Glyph Substitution Subtable
-    lookupTable: new LookupTable
+    lookupTable: new LookupTable()
   },
 
   5: { // Glyph Insertion Subtable
@@ -56,24 +56,24 @@ let Subtable = new r.Struct({
 });
 
 let FeatureEntry = new r.Struct({
-  featureType:    r.uint16,
+  featureType: r.uint16,
   featureSetting: r.uint16,
-  enableFlags:    r.uint32,
-  disableFlags:   r.uint32
+  enableFlags: r.uint32,
+  disableFlags: r.uint32
 });
 
 let MorxChain = new r.Struct({
-  defaultFlags:     r.uint32,
-  chainLength:      r.uint32,
-  nFeatureEntries:  r.uint32,
-  nSubtables:       r.uint32,
-  features:         new r.Array(FeatureEntry, 'nFeatureEntries'),
-  subtables:        new r.Array(Subtable, 'nSubtables')
+  defaultFlags: r.uint32,
+  chainLength: r.uint32,
+  nFeatureEntries: r.uint32,
+  nSubtables: r.uint32,
+  features: new r.Array(FeatureEntry, 'nFeatureEntries'),
+  subtables: new r.Array(Subtable, 'nSubtables')
 });
 
 export default new r.Struct({
-  version:  r.uint16,
-  unused:   new r.Reserved(r.uint16),
-  nChains:  r.uint32,
-  chains:   new r.Array(MorxChain, 'nChains')
+  version: r.uint16,
+  unused: new r.Reserved(r.uint16),
+  nChains: r.uint32,
+  chains: new r.Array(MorxChain, 'nChains')
 });

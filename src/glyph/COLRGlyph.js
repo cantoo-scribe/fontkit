@@ -23,7 +23,7 @@ export default class COLRGlyph extends Glyph {
       return g ? g.bbox : new BBox(0, 0, 0, 0);
     }
 
-    let bbox = new BBox;
+    let bbox = new BBox();
     for (let i = 0; i < layers.length; i++) {
       let layer = layers[i];
       let b = layer.glyph.bbox;
@@ -98,7 +98,7 @@ export default class COLRGlyph extends Glyph {
       return;
     }
 
-    for (let {glyph, color} of layers) {
+    for (let { glyph, color } of layers) {
       ctx.fillColor([color.red, color.green, color.blue], color.alpha / 255 * 100);
       glyph.render(ctx, size);
     }

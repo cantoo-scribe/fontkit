@@ -6,7 +6,7 @@ const swap = (b, n, m) => {
   b[m] = i;
 };
 
-const swap32 = array => {
+const swap32 = (array) => {
   const len = array.length;
   for (let i = 0; i < len; i += 4) {
     swap(array, i, i + 3);
@@ -14,7 +14,7 @@ const swap32 = array => {
   }
 };
 
-export const swap32LE = array => {
+export const swap32LE = (array) => {
   if (isBigEndian) {
     swap32(array);
   }

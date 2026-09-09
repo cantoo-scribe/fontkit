@@ -34,7 +34,7 @@ export default class CmapProcessor {
     }
 
     if (!this.cmap) {
-      throw new Error("Could not find a supported cmap table");
+      throw new Error('Could not find a supported cmap table');
     }
 
     this.uvs = this.findSubtable(cmapTable, [[0, 5]]);
@@ -155,7 +155,7 @@ export default class CmapProcessor {
       return 0;
     }
 
-    let {defaultUVS, nonDefaultUVS} = selectors[i];
+    let { defaultUVS, nonDefaultUVS } = selectors[i];
 
     // Default UVS: fall back to the base character's normal cmap glyph.
     if (defaultUVS && binarySearch(defaultUVS, x =>

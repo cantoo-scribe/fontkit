@@ -33,7 +33,7 @@ export default class CFFGlyph extends Glyph {
     let end = str.offset + str.length;
     stream.pos = str.offset;
 
-    let path = new Path;
+    let path = new Path();
     let stack = [];
     let trans = [];
 
@@ -104,8 +104,8 @@ export default class CFFGlyph extends Glyph {
           let pts;
 
           switch (op) {
-            case 1:  // hstem
-            case 3:  // vstem
+            case 1: // hstem
+            case 3: // vstem
             case 18: // hstemhm
             case 23: // vstemhm
               parseStems();
@@ -609,7 +609,6 @@ export default class CFFGlyph extends Glyph {
             default:
               throw new Error(`Unknown op: ${op}`);
           }
-
         } else if (op < 247) {
           stack.push(op - 139);
         } else if (op < 251) {

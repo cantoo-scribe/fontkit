@@ -15,5 +15,4 @@ describe('opentype', function () {
   it('featureParams should be null of aalt opentype feature', function () {
     assert.equal(font.GSUB.featureList[1].feature.featureParams, null);
   });
-
 });

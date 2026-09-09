@@ -16,7 +16,6 @@ export default class LayoutEngine {
     // scripts are currently supported because the shaping logic is built into the font.
     if (this.font.morx) {
       this.engine = new AATLayoutEngine(this.font);
-
     } else if (this.font.GSUB || this.font.GPOS) {
       this.engine = new OTLayoutEngine(this.font);
     }
@@ -137,22 +136,22 @@ export default class LayoutEngine {
     if (plane === 0) {
       // BMP
       switch (ch >> 8) {
-      	case 0x00: return ch === 0x00AD;
-      	case 0x03: return ch === 0x034F;
-      	case 0x06: return ch === 0x061C;
-      	case 0x17: return 0x17B4 <= ch && ch <= 0x17B5;
-      	case 0x18: return 0x180B <= ch && ch <= 0x180E;
-      	case 0x20: return (0x200B <= ch && ch <= 0x200F) || (0x202A <= ch && ch <= 0x202E) || (0x2060 <= ch && ch <= 0x206F);
-      	case 0xFE: return (0xFE00 <= ch && ch <= 0xFE0F) || ch === 0xFEFF;
-      	case 0xFF: return 0xFFF0 <= ch && ch <= 0xFFF8;
-      	default:   return false;
+        case 0x00: return ch === 0x00AD;
+        case 0x03: return ch === 0x034F;
+        case 0x06: return ch === 0x061C;
+        case 0x17: return 0x17B4 <= ch && ch <= 0x17B5;
+        case 0x18: return 0x180B <= ch && ch <= 0x180E;
+        case 0x20: return (0x200B <= ch && ch <= 0x200F) || (0x202A <= ch && ch <= 0x202E) || (0x2060 <= ch && ch <= 0x206F);
+        case 0xFE: return (0xFE00 <= ch && ch <= 0xFE0F) || ch === 0xFEFF;
+        case 0xFF: return 0xFFF0 <= ch && ch <= 0xFFF8;
+        default: return false;
       }
     } else {
       // Other planes
       switch (plane) {
-      	case 0x01: return (0x1BCA0 <= ch && ch <= 0x1BCA3) || (0x1D173 <= ch && ch <= 0x1D17A);
-      	case 0x0E: return 0xE0000 <= ch && ch <= 0xE0FFF;
-      	default:   return false;
+        case 0x01: return (0x1BCA0 <= ch && ch <= 0x1BCA3) || (0x1D173 <= ch && ch <= 0x1D17A);
+        case 0x0E: return 0xE0000 <= ch && ch <= 0xE0FFF;
+        default: return false;
       }
     }
   }
@@ -172,7 +171,7 @@ export default class LayoutEngine {
   }
 
   stringsForGlyph(gid) {
-    let result = new Set;
+    let result = new Set();
 
     let codePoints = this.font._cmapProcessor.codePointsForGlyph(gid);
     for (let codePoint of codePoints) {

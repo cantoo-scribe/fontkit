@@ -37,7 +37,7 @@ describe('character to glyph mapping', function () {
 
     it('should support legacy encodings when no unicode cmap is found', function () {
       let font = fontkit.openSync(new URL('data/fonttest/TestCMAPMacTurkish.ttf', import.meta.url));
-      let glyphs = font.glyphsForString("“ABÇĞIİÖŞÜ”");
+      let glyphs = font.glyphsForString('“ABÇĞIİÖŞÜ”');
       assert.deepEqual(glyphs.map(g => g.id), [200, 34, 35, 126, 176, 42, 178, 140, 181, 145, 201]);
     });
   });
@@ -91,7 +91,7 @@ describe('character to glyph mapping', function () {
     });
 
     it('should allow for disabling of default AAT morx features', function () {
-      let { glyphs } = font.layout('ffi 1⁄2', { 'liga': false });
+      let { glyphs } = font.layout('ffi 1⁄2', { liga: false });
       assert.equal(glyphs.length, 7);
       assert.deepEqual(glyphs.map(g => g.id), [73, 73, 76, 3, 20, 645, 21]);
       return assert.deepEqual(glyphs.map(g => g.codePoints), [[102], [102], [105], [32], [49], [8260], [50]]);
@@ -105,7 +105,7 @@ describe('character to glyph mapping', function () {
     });
 
     it('should handle rtl direction', function () {
-      let { glyphs } = font.layout('ffi', [], null, null, "rtl");
+      let { glyphs } = font.layout('ffi', [], null, null, 'rtl');
       assert.equal(glyphs.length, 3);
       assert.deepEqual(glyphs.map(g => g.id), [76, 73, 73]);
       return assert.deepEqual(glyphs.map(g => g.codePoints), [[105], [102], [102]]);

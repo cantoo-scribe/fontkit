@@ -55,7 +55,7 @@ export default class ShapingPlan {
       this._addFeatures(arg.global || [], true);
       this._addFeatures(arg.local || [], false);
     } else {
-      throw new Error("Unsupported argument to ShapingPlan#add");
+      throw new Error('Unsupported argument to ShapingPlan#add');
     }
   }
 
@@ -112,7 +112,6 @@ export default class ShapingPlan {
         if (!positions) {
           stage(this.font, glyphs, this);
         }
-
       } else if (stage.length > 0) {
         processor.applyFeatures(stage, glyphs, positions);
       }

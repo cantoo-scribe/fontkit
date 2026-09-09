@@ -1,35 +1,35 @@
 import AATStateMachine from './AATStateMachine';
 import AATLookupTable from './AATLookupTable';
-import {cache} from '../decorators';
+import { cache } from '../decorators';
 
 // indic replacement flags
 const MARK_FIRST = 0x8000;
-const MARK_LAST  = 0x2000;
-const VERB       = 0x000F;
+const MARK_LAST = 0x2000;
+const VERB = 0x000F;
 
 // contextual substitution and glyph insertion flag
 const SET_MARK = 0x8000;
 
 // ligature entry flags
-const SET_COMPONENT  = 0x8000;
+const SET_COMPONENT = 0x8000;
 const PERFORM_ACTION = 0x2000;
 
 // ligature action masks
-const LAST_MASK   = 0x80000000;
-const STORE_MASK  = 0x40000000;
+const LAST_MASK = 0x80000000;
+const STORE_MASK = 0x40000000;
 const OFFSET_MASK = 0x3FFFFFFF;
 
-const _VERTICAL_ONLY           = 0x800000;
-const REVERSE_DIRECTION        = 0x400000;
+const _VERTICAL_ONLY = 0x800000;
+const REVERSE_DIRECTION = 0x400000;
 const _HORIZONTAL_AND_VERTICAL = 0x200000;
 
 // glyph insertion flags
 const _CURRENT_IS_KASHIDA_LIKE = 0x2000;
-const _MARKED_IS_KASHIDA_LIKE  = 0x1000;
-const CURRENT_INSERT_BEFORE   = 0x0800;
-const MARKED_INSERT_BEFORE    = 0x0400;
-const CURRENT_INSERT_COUNT    = 0x03E0;
-const MARKED_INSERT_COUNT     = 0x001F;
+const _MARKED_IS_KASHIDA_LIKE = 0x1000;
+const CURRENT_INSERT_BEFORE = 0x0800;
+const MARKED_INSERT_BEFORE = 0x0400;
+const CURRENT_INSERT_COUNT = 0x03E0;
+const MARKED_INSERT_COUNT = 0x001F;
 
 export default class AATMorxProcessor {
   constructor(font) {
@@ -348,7 +348,7 @@ export default class AATMorxProcessor {
       },
 
       exit: () => {
-        ({glyphs: this.glyphs, ligatureStack: this.ligatureStack} = stack.pop());
+        ({ glyphs: this.glyphs, ligatureStack: this.ligatureStack } = stack.pop());
         input.pop();
       }
     });

@@ -1,4 +1,4 @@
-import {isMark} from '../packages/unicode-properties/index.js';
+import { isMark } from '../packages/unicode-properties/index.js';
 import OTProcessor from './OTProcessor';
 
 export default class GlyphInfo {

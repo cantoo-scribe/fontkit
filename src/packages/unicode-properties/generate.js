@@ -33,7 +33,6 @@ for (var codePoint of Array.from(codePoints)) {
 }
 
 const numberBits = 10;
-const categoryBits = bits(categoryCount - 1);
 const combiningClassBits = bits(combiningClassCount - 1);
 const scriptBits = bits(scriptCount - 1);
 const eawBits = bits(eawCount - 1);
@@ -43,12 +42,12 @@ const combiningShift = scriptBits + eawBits + numberBits;
 const scriptShift = eawBits + numberBits;
 const eawShift = numberBits;
 
-const numericValue = function(numeric) {
+const numericValue = function (numeric) {
   if (numeric) {
     let exp,
       m,
       mant;
-    if (m = numeric.match(/^(\-?\d+)\/(\d+)$/)) {
+    if ((m = numeric.match(/^(-?\d+)\/(\d+)$/))) {
       // fraction
       const num = parseInt(m[1]);
       const den = parseInt(m[2]);
@@ -79,7 +78,7 @@ const numericValue = function(numeric) {
   }
 };
 
-const trie = new UnicodeTrieBuilder;
+const trie = new UnicodeTrieBuilder();
 for (codePoint of Array.from(codePoints)) {
   if (codePoint != null) {
     const category = categories[codePoint.category];

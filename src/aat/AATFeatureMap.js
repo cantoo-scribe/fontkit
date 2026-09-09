@@ -32,12 +32,12 @@ const features = {
     code: 3,
     exclusive: true
   },
-    // upperAndLowerCase: 0          # deprecated
-    // allCaps: 1                    # deprecated
-    // allLowerCase: 2               # deprecated
-    // smallCaps: 3                  # deprecated
-    // initialCaps: 4                # deprecated
-    // initialCapsAndSmallCaps: 5    # deprecated
+  // upperAndLowerCase: 0          # deprecated
+  // allCaps: 1                    # deprecated
+  // allLowerCase: 2               # deprecated
+  // smallCaps: 3                  # deprecated
+  // initialCaps: 4                # deprecated
+  // initialCapsAndSmallCaps: 5    # deprecated
   verticalSubstitution: {
     code: 4,
     exclusive: false,
@@ -100,9 +100,9 @@ const features = {
     // hyphenToEnDash: 2
     slashedZero: 4
   },
-    // formInterrobang: 6
-    // smartQuotes: 8
-    // periodsToEllipsis: 10
+  // formInterrobang: 6
+  // smartQuotes: 8
+  // periodsToEllipsis: 10
   mathematicalExtras: {
     code: 15,
     exclusive: false,
@@ -129,7 +129,7 @@ const features = {
     exclusive: true,
     noAlternates: 0
   },
-    // user defined options
+  // user defined options
   designComplexity: {
     code: 18,
     exclusive: true,
@@ -190,15 +190,15 @@ const features = {
     exclusive: true,
     noTransliteration: 0
   },
-    // hanjaToHangul: 1
-    // hiraganaToKatakana: 2
-    // katakanaToHiragana: 3
-    // kanaToRomanization: 4
-    // romanizationToHiragana: 5
-    // romanizationToKatakana: 6
-    // hanjaToHangulAltOne: 7
-    // hanjaToHangulAltTwo: 8
-    // hanjaToHangulAltThree: 9
+  // hanjaToHangul: 1
+  // hiraganaToKatakana: 2
+  // katakanaToHiragana: 3
+  // kanaToRomanization: 4
+  // romanizationToHiragana: 5
+  // romanizationToKatakana: 6
+  // hanjaToHangulAltOne: 7
+  // hanjaToHangulAltTwo: 8
+  // hanjaToHangulAltThree: 9
   annotation: {
     code: 24,
     exclusive: true,
@@ -418,7 +418,7 @@ const OTMapping = {
   hwid: feature('textSpacing', 'halfWidthText'),
   qwid: feature('textSpacing', 'quarterWidthText'), // also QuarterWidthNumbers?
   twid: feature('textSpacing', 'thirdWidthText'), // also ThirdWidthNumbers?
-  fwid: feature('textSpacing', 'proportionalText'), //??
+  fwid: feature('textSpacing', 'proportionalText'), // ??
   palt: feature('textSpacing', 'altProportionalText'),
   trad: feature('characterShape', 'traditionalCharacters'),
   smpl: feature('characterShape', 'simplifiedCharacters'),
@@ -456,7 +456,7 @@ const OTMapping = {
   ss20: feature('stylisticAlternatives', 'stylisticAltTwenty')
 };
 
-  // salt: feature 'stylisticAlternatives', 'stylisticAltOne' # hmm, which one to choose
+// salt: feature 'stylisticAlternatives', 'stylisticAltOne' # hmm, which one to choose
 
 // Add cv01-cv99 features
 for (let i = 1; i <= 99; i++) {
@@ -527,7 +527,6 @@ export function mapAATToOT(features) {
         res[r] = true;
       }
     }
-
   } else if (typeof features === 'object') {
     for (let type in features) {
       let feature = features[type];

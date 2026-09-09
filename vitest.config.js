@@ -14,7 +14,7 @@ function trieBase64Plugin() {
         const base64 = fs.readFileSync(id, 'base64');
         return `export default ${JSON.stringify(base64)}`;
       }
-    },
+    }
   };
 }
 
@@ -36,16 +36,16 @@ function legacyDecoratorsPlugin() {
         sourcemap: true,
         tsconfigRaw: {
           compilerOptions: {
-            experimentalDecorators: true,
-          },
-        },
+            experimentalDecorators: true
+          }
+        }
       });
 
       return {
         code: result.code,
-        map: result.map || null,
+        map: result.map || null
       };
-    },
+    }
   };
 }
 
@@ -53,8 +53,8 @@ export default defineConfig({
   plugins: [trieBase64Plugin(), legacyDecoratorsPlugin()],
   resolve: {
     alias: {
-      fontkit: path.join(root, 'src/node.js'),
-    },
+      fontkit: path.join(root, 'src/node.js')
+    }
   },
   test: {
     include: ['test/**/*.js'],
@@ -63,7 +63,7 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.js'],
-    },
-  },
+      include: ['src/**/*.js']
+    }
+  }
 });

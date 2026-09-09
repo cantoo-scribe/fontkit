@@ -27,10 +27,10 @@ export default class Path {
    * @return {string}
    */
   toFunction() {
-    return ctx => {
-      this.commands.forEach(c => {
-        return ctx[c.command].apply(ctx, c.args)
-      })
+    return (ctx) => {
+      this.commands.forEach((c) => {
+        return ctx[c.command].apply(ctx, c.args);
+      });
     };
   }
 
@@ -39,7 +39,7 @@ export default class Path {
    * @return {string}
    */
   toSVG() {
-    let cmds = this.commands.map(c => {
+    let cmds = this.commands.map((c) => {
       let args = c.args.map(arg => Math.round(arg * 100) / 100);
       return `${SVG_COMMANDS[c.command]}${args.join(' ')}`;
     });
@@ -59,7 +59,7 @@ export default class Path {
       if (this.commands.length === 0) {
         this._cbox = Object.freeze(new BBox(0, 0, 0, 0));
       } else {
-        let cbox = new BBox;
+        let cbox = new BBox();
         for (let command of this.commands) {
           for (let i = 0; i < command.args.length; i += 2) {
             cbox.addPoint(command.args[i], command.args[i + 1]);
@@ -87,7 +87,7 @@ export default class Path {
       return this._bbox = Object.freeze(new BBox(0, 0, 0, 0));
     }
 
-    let bbox = new BBox;
+    let bbox = new BBox();
     let cx = 0, cy = 0;
 
     for (let c of this.commands) {
@@ -109,9 +109,9 @@ export default class Path {
             let [qp1x, qp1y, qp3x, qp3y] = c.args;
             p3x = qp3x;
             p3y = qp3y;
-            cp1x = cx + 2 / 3 * (qp1x - cx);    // CP1 = QP0 + 2/3 * (QP1-QP0)
+            cp1x = cx + 2 / 3 * (qp1x - cx); // CP1 = QP0 + 2/3 * (QP1-QP0)
             cp1y = cy + 2 / 3 * (qp1y - cy);
-            cp2x = p3x + 2 / 3 * (qp1x - p3x);  // CP2 = QP2 + 2/3 * (QP1-QP2)
+            cp2x = p3x + 2 / 3 * (qp1x - p3x); // CP2 = QP2 + 2/3 * (QP1-QP2)
             cp2y = p3y + 2 / 3 * (qp1y - p3y);
           } else {
             [cp1x, cp1y, cp2x, cp2y, p3x, p3y] = c.args;
@@ -127,9 +127,9 @@ export default class Path {
 
           let f = (t, i) => (
             Math.pow(1 - t, 3) * p0[i]
-              + 3 * Math.pow(1 - t, 2) * t * p1[i]
-              + 3 * (1 - t) * Math.pow(t, 2) * p2[i]
-              + Math.pow(t, 3) * p3[i]
+            + 3 * Math.pow(1 - t, 2) * t * p1[i]
+            + 3 * (1 - t) * Math.pow(t, 2) * p2[i]
+            + Math.pow(t, 3) * p3[i]
           );
 
           for (let i = 0; i <= 1; i++) {
@@ -194,7 +194,7 @@ export default class Path {
    * @return {Path}
    */
   mapPoints(fn) {
-    let path = new Path;
+    let path = new Path();
 
     for (let c of this.commands) {
       let args = [];
@@ -245,7 +245,7 @@ export default class Path {
 }
 
 for (let command of ['moveTo', 'lineTo', 'quadraticCurveTo', 'bezierCurveTo', 'closePath']) {
-  Path.prototype[command] = function(...args) {
+  Path.prototype[command] = function (...args) {
     this._bbox = this._cbox = null;
     this.commands.push({
       command,

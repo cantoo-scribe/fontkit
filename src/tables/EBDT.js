@@ -88,4 +88,3 @@ export let glyph = new r.VersionedStruct('version', {
     data: new r.Buffer('dataLen')
   }
 });
-
