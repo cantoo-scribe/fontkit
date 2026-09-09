@@ -1,5 +1,6 @@
 import Glyph from './Glyph';
 import Path from './Path';
+import { StandardEncoding } from '../cff/CFFEncodings';
 
 /**
  * Represents an OpenType PostScript glyph, in the Compact Font Format.
@@ -56,6 +57,7 @@ export default class CFFGlyph extends Glyph {
     let vstore = cff.topDict.vstore && cff.topDict.vstore.itemVariationStore;
     let vsindex = privateDict.vsindex;
     let variationProcessor = this._font._variationProcessor;
+    let font = this._font;
 
     function checkWidth() {
       if (width == null) {
@@ -79,6 +81,17 @@ export default class CFFGlyph extends Glyph {
 
       path.moveTo(x, y);
       open = true;
+    }
+
+    function glyphForName(name) {
+      if (name) {
+        for (let i = 0; i < font.numGlyphs; i++) {
+          if (cff.getGlyphName(i) === name) {
+            return font.getGlyph(i);
+          }
+        }
+      }
+      return font.getGlyph(0);
     }
 
     let parse = function () {
@@ -168,7 +181,20 @@ export default class CFFGlyph extends Glyph {
                 break;
               }
 
-              if (stack.length > 0) {
+              // Deprecated seac: [width?] adx ady bchar achar endchar (TN5177 App. C)
+              if (stack.length >= 4) {
+                if (stack.length > 4) {
+                  checkWidth();
+                }
+                let a = glyphForName(StandardEncoding[stack.pop()]);
+                let b = glyphForName(StandardEncoding[stack.pop()]);
+                let ady = stack.pop();
+                let adx = stack.pop();
+                let pos = stream.pos;
+                path.commands = b.path.commands.concat(a.path.translate(adx, ady).commands);
+                stream.pos = pos;
+                open = false;
+              } else if (stack.length > 0) {
                 checkWidth();
               }
 
