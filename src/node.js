@@ -1,5 +1,4 @@
-import { registerFormat, create, defaultLanguage, setDefaultLanguage } from './base';
-import { open, openSync } from './fs';
+import { registerFormat } from './base';
 import TTFFont from './TTFFont';
 import WOFFFont from './WOFFFont';
 import WOFF2Font from './WOFF2Font';

@@ -351,12 +351,13 @@ export default class CFFGlyph extends Glyph {
               }
               break;
 
-            case 12:
+            case 12: {
               op = stream.readUInt8();
+              let a, b, val, idx;
               switch (op) {
                 case 3: // and
-                  let a = stack.pop();
-                  let b = stack.pop();
+                  a = stack.pop();
+                  b = stack.pop();
                   stack.push(a && b ? 1 : 0);
                   break;
 
@@ -410,8 +411,8 @@ export default class CFFGlyph extends Glyph {
                   break;
 
                 case 20: // put
-                  let val = stack.pop();
-                  let idx = stack.pop();
+                  val = stack.pop();
+                  idx = stack.pop();
                   trans[idx] = val;
                   break;
 
@@ -420,13 +421,14 @@ export default class CFFGlyph extends Glyph {
                   stack.push(trans[idx] || 0);
                   break;
 
-                case 22: // ifelse
+                case 22: { // ifelse
                   let s1 = stack.pop();
                   let s2 = stack.pop();
                   let v1 = stack.pop();
                   let v2 = stack.pop();
                   stack.push(v1 <= v2 ? s1 : s2);
                   break;
+                }
 
                 case 23: // random
                   stack.push(Math.random());
@@ -465,13 +467,13 @@ export default class CFFGlyph extends Glyph {
                   stack.push(stack[idx]);
                   break;
 
-                case 30: // roll
+                case 30: { // roll
                   let n = stack.pop();
                   let j = stack.pop();
 
                   if (j >= 0) {
                     while (j > 0) {
-                      var t = stack[n - 1];
+                      let t = stack[n - 1];
                       for (let i = n - 2; i >= 0; i--) {
                         stack[i + 1] = stack[i];
                       }
@@ -481,7 +483,7 @@ export default class CFFGlyph extends Glyph {
                     }
                   } else {
                     while (j < 0) {
-                      var t = stack[0];
+                      let t = stack[0];
                       for (let i = 0; i <= n; i++) {
                         stack[i] = stack[i + 1];
                       }
@@ -491,6 +493,7 @@ export default class CFFGlyph extends Glyph {
                     }
                   }
                   break;
+                }
 
                 case 34: // hflex
                   c1x = x + stack.shift();
@@ -546,7 +549,7 @@ export default class CFFGlyph extends Glyph {
                   path.bezierCurveTo(c4x, c4y, c5x, c5y, c6x, c6y);
                   break;
 
-                case 37: // flex1
+                case 37: { // flex1
                   let startx = x;
                   let starty = y;
 
@@ -569,11 +572,13 @@ export default class CFFGlyph extends Glyph {
                   path.bezierCurveTo(...pts.slice(0, 6));
                   path.bezierCurveTo(...pts.slice(6));
                   break;
+                }
 
                 default:
                   throw new Error(`Unknown op: 12 ${op}`);
               }
               break;
+            }
 
             default:
               throw new Error(`Unknown op: ${op}`);
@@ -582,10 +587,10 @@ export default class CFFGlyph extends Glyph {
         } else if (op < 247) {
           stack.push(op - 139);
         } else if (op < 251) {
-          var b1 = stream.readUInt8();
+          let b1 = stream.readUInt8();
           stack.push((op - 247) * 256 + b1 + 108);
         } else if (op < 255) {
-          var b1 = stream.readUInt8();
+          let b1 = stream.readUInt8();
           stack.push(-(op - 251) * 256 - b1 - 108);
         } else {
           stack.push(stream.readInt32BE() / 65536);

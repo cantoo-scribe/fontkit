@@ -19,13 +19,13 @@ const LAST_MASK   = 0x80000000;
 const STORE_MASK  = 0x40000000;
 const OFFSET_MASK = 0x3FFFFFFF;
 
-const VERTICAL_ONLY           = 0x800000;
-const REVERSE_DIRECTION       = 0x400000;
-const HORIZONTAL_AND_VERTICAL = 0x200000;
+const _VERTICAL_ONLY           = 0x800000;
+const REVERSE_DIRECTION        = 0x400000;
+const _HORIZONTAL_AND_VERTICAL = 0x200000;
 
 // glyph insertion flags
-const CURRENT_IS_KASHIDA_LIKE = 0x2000;
-const MARKED_IS_KASHIDA_LIKE  = 0x1000;
+const _CURRENT_IS_KASHIDA_LIKE = 0x2000;
+const _MARKED_IS_KASHIDA_LIKE  = 0x1000;
 const CURRENT_INSERT_BEFORE   = 0x0800;
 const MARKED_INSERT_BEFORE    = 0x0400;
 const CURRENT_INSERT_COUNT    = 0x03E0;
@@ -52,7 +52,7 @@ export default class AATMorxProcessor {
       // enable/disable the requested features
       for (let feature of chain.features) {
         let f;
-        if (f = features[feature.featureType]) {
+        if ((f = features[feature.featureType])) {
           if (f[feature.featureSetting]) {
             flags &= feature.disableFlags;
             flags |= feature.enableFlags;
@@ -144,7 +144,7 @@ export default class AATMorxProcessor {
       let lookup = subsitutions.getItem(entry.markIndex);
       let lookupTable = new AATLookupTable(lookup);
       glyph = this.glyphs[this.markedGlyph];
-      var gid = lookupTable.lookup(glyph.id);
+      let gid = lookupTable.lookup(glyph.id);
       if (gid) {
         this.glyphs[this.markedGlyph] = this.font.getGlyph(gid, glyph.codePoints);
       }
@@ -154,7 +154,7 @@ export default class AATMorxProcessor {
       let lookup = subsitutions.getItem(entry.currentIndex);
       let lookupTable = new AATLookupTable(lookup);
       glyph = this.glyphs[index];
-      var gid = lookupTable.lookup(glyph.id);
+      let gid = lookupTable.lookup(glyph.id);
       if (gid) {
         this.glyphs[index] = this.font.getGlyph(gid, glyph.codePoints);
       }
@@ -374,7 +374,6 @@ function swap(glyphs, rangeA, rangeB, reverseA = false, reverseB = false) {
 }
 
 function reorderGlyphs(glyphs, verb, firstGlyph, lastGlyph) {
-  let length = lastGlyph - firstGlyph + 1;
   switch (verb) {
     case 0: // no change
       return glyphs;

@@ -1,7 +1,6 @@
 import cloneDeep from 'clone';
 import Subset from './Subset';
 import Directory from '../tables/directory';
-import Tables from '../tables';
 import TTFGlyphEncoder from '../glyph/TTFGlyphEncoder';
 
 export default class TTFSubset extends Subset {

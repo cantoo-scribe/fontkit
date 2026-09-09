@@ -4,9 +4,10 @@ import UnicodeTrie from 'unicode-trie';
 import GlyphInfo from '../GlyphInfo';
 import useData from './use.json';
 import { decodeBase64 } from '../../utils';
+import useTrie from './use.trie';
 
 const {categories, decompositions} = useData;
-const trie = new UnicodeTrie(decodeBase64(require('fs').readFileSync(__dirname + '/use.trie', 'base64')));
+const trie = new UnicodeTrie(decodeBase64(useTrie));
 const stateMachine = new StateMachine(useData);
 
 /**
@@ -133,7 +134,7 @@ function reorder(font, glyphs) {
 
       // Insert after possible Repha.
       for (i = start; i < end && glyphs[i].shaperInfo.category === 'R'; i++);
-      glyphs.splice(++i, 0, g);
+      glyphs.splice(i + 1, 0, g);
       end++;
     }
 

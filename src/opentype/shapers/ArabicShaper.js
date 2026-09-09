@@ -2,8 +2,9 @@ import DefaultShaper from './DefaultShaper';
 import {getCategory} from 'unicode-properties';
 import UnicodeTrie from 'unicode-trie';
 import { decodeBase64 } from '../../utils';
+import dataTrie from './data.trie';
 
-const trie = new UnicodeTrie(decodeBase64(require('fs').readFileSync(__dirname + '/data.trie', 'base64')));
+const trie = new UnicodeTrie(decodeBase64(dataTrie));
 const FEATURES = ['isol', 'fina', 'fin2', 'fin3', 'medi', 'med2', 'init'];
 
 const ShapingClasses = {
@@ -80,7 +81,7 @@ export default class ArabicShaper extends DefaultShaper {
     // Apply the state machine to map glyphs to features
     for (let i = 0; i < glyphs.length; i++) {
       let curAction, prevAction;
-      var glyph = glyphs[i];
+      let glyph = glyphs[i];
       let type = getShapingClass(glyph.codePoints[0]);
       if (type === ShapingClasses.Transparent) {
         actions[i] = NONE;
@@ -100,8 +101,8 @@ export default class ArabicShaper extends DefaultShaper {
     // Apply the chosen features to their respective glyphs
     for (let index = 0; index < glyphs.length; index++) {
       let feature;
-      var glyph = glyphs[index];
-      if (feature = actions[index]) {
+      let glyph = glyphs[index];
+      if ((feature = actions[index])) {
         glyph.features[feature] = true;
       }
     }

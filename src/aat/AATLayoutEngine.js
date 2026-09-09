@@ -1,5 +1,4 @@
 import * as AATFeatureMap from './AATFeatureMap';
-import * as Script from '../layout/Script';
 import AATMorxProcessor from './AATMorxProcessor';
 
 export default class AATLayoutEngine {
@@ -19,7 +18,7 @@ export default class AATLayoutEngine {
     this.morxProcessor.process(glyphRun.glyphs, AATFeatureMap.mapOTToAAT(glyphRun.features));
   }
 
-  getAvailableFeatures(script, language) {
+  getAvailableFeatures(_script, _language) {
     return AATFeatureMap.mapAATToOT(this.morxProcessor.getSupportedFeatures());
   }
 

@@ -32,7 +32,7 @@ export default class GlyphVariationProcessor {
     // the default mapping is linear along each axis, in two segments:
     // from the minValue to defaultValue, and from defaultValue to maxValue.
     let normalized = [];
-    for (var i = 0; i < this.font.fvar.axis.length; i++) {
+    for (let i = 0; i < this.font.fvar.axis.length; i++) {
       let axis = this.font.fvar.axis[i];
       if (coords[i] < axis.defaultValue) {
         normalized.push((coords[i] - axis.defaultValue + Number.EPSILON) / (axis.defaultValue - axis.minValue + Number.EPSILON));
@@ -44,7 +44,7 @@ export default class GlyphVariationProcessor {
     // if there is an avar table, the normalized value is calculated
     // by interpolating between the two nearest mapped values.
     if (this.font.avar) {
-      for (var i = 0; i < this.font.avar.segment.length; i++) {
+      for (let i = 0; i < this.font.avar.segment.length; i++) {
         let segment = this.font.avar.segment[i];
         for (let j = 0; j < segment.correspondence.length; j++) {
           let pair = segment.correspondence[j];
@@ -83,7 +83,7 @@ export default class GlyphVariationProcessor {
     let offsetToData = offset + stream.readUInt16BE();
 
     if (tupleCount & TUPLES_SHARE_POINT_NUMBERS) {
-      var here = stream.pos;
+      let here = stream.pos;
       stream.pos = offsetToData;
       var sharedPoints = this.decodePoints();
       offsetToData = stream.pos;
@@ -97,8 +97,9 @@ export default class GlyphVariationProcessor {
       let tupleDataSize = stream.readUInt16BE();
       let tupleIndex = stream.readUInt16BE();
 
+      let tupleCoords;
       if (tupleIndex & EMBEDDED_TUPLE_COORD) {
-        var tupleCoords = [];
+        tupleCoords = [];
         for (let a = 0; a < gvar.axisCount; a++) {
           tupleCoords.push(stream.readInt16BE() / 16384);
         }
@@ -108,7 +109,7 @@ export default class GlyphVariationProcessor {
           throw new Error('Invalid gvar table');
         }
 
-        var tupleCoords = gvar.globalCoords[tupleIndex & TUPLE_INDEX_MASK];
+        tupleCoords = gvar.globalCoords[tupleIndex & TUPLE_INDEX_MASK];
       }
 
       if (tupleIndex & INTERMEDIATE_TUPLE) {
@@ -130,13 +131,14 @@ export default class GlyphVariationProcessor {
         continue;
       }
 
-      var here = stream.pos;
+      let here = stream.pos;
       stream.pos = offsetToData;
 
+      let points;
       if (tupleIndex & PRIVATE_POINT_NUMBERS) {
-        var points = this.decodePoints();
+        points = this.decodePoints();
       } else {
-        var points = sharedPoints;
+        points = sharedPoints;
       }
 
       // points.length = 0 means there are deltas for all points
@@ -391,7 +393,6 @@ export default class GlyphVariationProcessor {
         idx = table.advanceWidthMapping.mapCount - 1;
       }
 
-      let entryFormat = table.advanceWidthMapping.entryFormat;
       ({outerIndex, innerIndex} = table.advanceWidthMapping.mapData[idx]);
     } else {
       outerIndex = 0;

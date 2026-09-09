@@ -14,3 +14,4 @@ indic.trie
 indic.json
 dist
 .parcel-cache
+.turbo

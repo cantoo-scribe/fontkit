@@ -4,11 +4,11 @@ import * as fontkit from 'fontkit';
 describe('i18n', function () {
   describe('fontkit.setDefaultLanguage', function () {
     let font;
-    before('load Amiri font', function () {
+    beforeAll(function () {
       font = fontkit.openSync(new URL('data/amiri/amiri-regular.ttf', import.meta.url));
     });
 
-    after('reset default language', function () {
+    afterAll(function () {
       fontkit.setDefaultLanguage();
     });
 
@@ -43,7 +43,7 @@ describe('i18n', function () {
 
   describe('font.setDefaultLanguage', function () {
     let font;
-    before('load Amiri font', function () {
+    beforeAll(function () {
       font = fontkit.openSync(new URL('data/amiri/amiri-regular.ttf', import.meta.url));
     });
 
@@ -86,11 +86,11 @@ describe('i18n', function () {
 
   describe('backup languages', function () {
     let font;
-    before('load Amiri font', function () {
+    beforeAll(function () {
       font = fontkit.openSync(new URL('data/amiri/amiri-regular.ttf', import.meta.url));
     });
 
-    after('reset default language', function () {
+    afterAll(function () {
       fontkit.setDefaultLanguage();
     });
 

@@ -1,5 +1,5 @@
 import * as r from 'restructure';
-import {ScriptList, FeatureList, LookupList, Coverage, ClassDef, Device} from './opentype';
+import {Coverage, ClassDef, Device} from './opentype';
 import {ItemVariationStore} from './variations';
 
 let AttachPoint = new r.Array(r.uint16, r.uint16);

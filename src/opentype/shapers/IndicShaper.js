@@ -15,9 +15,10 @@ import {
   INDIC_DECOMPOSITIONS
 } from './indic-data';
 import { decodeBase64 } from '../../utils';
+import indicTrie from './indic.trie';
 
 const {decompositions} = useData;
-const trie = new UnicodeTrie(decodeBase64(require('fs').readFileSync(__dirname + '/indic.trie', 'base64')));
+const trie = new UnicodeTrie(decodeBase64(indicTrie));
 const stateMachine = new StateMachine(indicMachine);
 
 /**
@@ -182,7 +183,7 @@ function initialReordering(font, glyphs, plan) {
   }
 
   for (let start = 0, end = nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = nextSyllable(glyphs, start)) {
-    let {category, syllableType} = glyphs[start].shaperInfo;
+    let {syllableType} = glyphs[start].shaperInfo;
 
     if (syllableType === 'symbol_cluster' || syllableType === 'non_indic_cluster') {
       continue;
@@ -203,7 +204,7 @@ function initialReordering(font, glyphs, plan) {
         i++;
       }
 
-      glyphs.splice(i++, 0, g);
+      glyphs.splice(i, 0, g);
       end++;
     }
 
@@ -887,6 +888,8 @@ function finalReordering(font, glyphs, plan) {
             glyphs[newPos] = tmp;
 
             if (newPos <= base && base < oldPos) {
+              // harfbuzz keeps base for later steps; unused here
+              // eslint-disable-next-line no-useless-assignment
               base++;
             }
           }

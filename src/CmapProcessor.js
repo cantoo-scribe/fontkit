@@ -1,5 +1,5 @@
 import { binarySearch } from './utils';
-import { encodingExists, getEncoding, getEncodingMapping } from './encodings';
+import { getEncoding, getEncodingMapping } from './encodings';
 import { cache } from './decorators';
 import { range } from './utils';
 
@@ -237,7 +237,7 @@ export default class CmapProcessor {
           let delta = cmap.idDelta.get(i);
 
           for (var c = start; c <= end; c++) {
-            let g = 0;
+            let g;
             if (rangeOffset === 0) {
               g = c + delta;
             } else {

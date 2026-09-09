@@ -38,17 +38,18 @@ export default class COLRGlyph extends Glyph {
     let colr = this._font.COLR;
     let low = 0;
     let high = colr.baseGlyphRecord.length - 1;
+    let baseLayer;
 
     while (low <= high) {
       let mid = (low + high) >> 1;
-      var rec = colr.baseGlyphRecord[mid];
+      let rec = colr.baseGlyphRecord[mid];
 
       if (this.id < rec.gid) {
         high = mid - 1;
       } else if (this.id > rec.gid) {
         low = mid + 1;
       } else {
-        var baseLayer = rec;
+        baseLayer = rec;
         break;
       }
     }
@@ -56,8 +57,8 @@ export default class COLRGlyph extends Glyph {
     // if base glyph not found in COLR table,
     // default to normal glyph from glyf or CFF
     if (baseLayer == null) {
-      var g = this._font._getBaseGlyph(this.id);
-      var color = {
+      let g = this._font._getBaseGlyph(this.id);
+      let color = {
         red: 0,
         green: 0,
         blue: 0,
@@ -70,9 +71,9 @@ export default class COLRGlyph extends Glyph {
     // otherwise, return an array of all the layers
     let layers = [];
     for (let i = baseLayer.firstLayerIndex; i < baseLayer.firstLayerIndex + baseLayer.numLayers; i++) {
-      var rec = colr.layerRecords[i];
-      var color = cpal.colorRecords[rec.paletteIndex];
-      var g = this._font._getBaseGlyph(rec.gid);
+      let rec = colr.layerRecords[i];
+      let color = cpal.colorRecords[rec.paletteIndex];
+      let g = this._font._getBaseGlyph(rec.gid);
       layers.push(new COLRLayer(g, color));
     }
 

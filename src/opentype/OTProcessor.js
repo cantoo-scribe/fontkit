@@ -211,7 +211,7 @@ export default class OTProcessor {
     }
   }
 
-  applyLookup(lookup, table) {
+  applyLookup(_lookup, _table) {
     throw new Error("applyLookup must be implemented by subclasses");
   }
 
@@ -307,13 +307,14 @@ export default class OTProcessor {
 
   getClassID(glyph, classDef) {
     switch (classDef.version) {
-      case 1: // Class array
+      case 1: { // Class array
         let i = glyph - classDef.startGlyph;
         if (i >= 0 && i < classDef.classValueArray.length) {
           return classDef.classValueArray[i];
         }
 
         break;
+      }
 
       case 2:
         for (let range of classDef.classRangeRecord) {
@@ -385,7 +386,7 @@ export default class OTProcessor {
   applyChainingContext(table) {
     let index;
     switch (table.version) {
-      case 1:
+      case 1: {
         index = this.coverageIndex(table.coverage);
         if (index === -1) {
           return false;
@@ -401,8 +402,9 @@ export default class OTProcessor {
         }
 
         break;
+      }
 
-      case 2:
+      case 2: {
         if (this.coverageIndex(table.coverage) === -1) {
           return false;
         }
@@ -422,6 +424,7 @@ export default class OTProcessor {
         }
 
         break;
+      }
 
       case 3:
         if (this.coverageSequenceMatches(-table.backtrackGlyphCount, table.backtrackCoverage) &&

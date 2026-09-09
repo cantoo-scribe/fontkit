@@ -480,7 +480,7 @@ export function mapOTToAAT(features) {
   let res = {};
   for (let k in features) {
     let r;
-    if (r = OTMapping[k]) {
+    if ((r = OTMapping[k])) {
       if (res[r[0]] == null) {
         res[r[0]] = {};
       }
@@ -496,16 +496,18 @@ export function mapOTToAAT(features) {
 // to their equivalent number codes
 function mapFeatureStrings(f) {
   let [type, setting] = f;
+  let typeCode;
   if (isNaN(type)) {
-    var typeCode = features[type] && features[type].code;
+    typeCode = features[type] && features[type].code;
   } else {
-    var typeCode = type;
+    typeCode = type;
   }
 
+  let settingCode;
   if (isNaN(setting)) {
-    var settingCode = features[type] && features[type][setting];
+    settingCode = features[type] && features[type][setting];
   } else {
-    var settingCode = setting;
+    settingCode = setting;
   }
 
   return [typeCode, settingCode];
@@ -521,7 +523,7 @@ export function mapAATToOT(features) {
     for (let k = 0; k < features.length; k++) {
       let r;
       let f = mapFeatureStrings(features[k]);
-      if (r = AATMapping[f[0]] && AATMapping[f[0]][f[1]]) {
+      if ((r = AATMapping[f[0]] && AATMapping[f[0]][f[1]])) {
         res[r] = true;
       }
     }

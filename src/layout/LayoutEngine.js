@@ -32,13 +32,14 @@ export default class LayoutEngine {
     }
 
     // Map string to glyphs if needed
+    let glyphs;
     if (typeof string === 'string') {
       // Attempt to detect the script from the string if not provided.
       if (script == null) {
         script = Script.forString(string);
       }
 
-      var glyphs = this.font.glyphsForString(string);
+      glyphs = this.font.glyphsForString(string);
     } else {
       // Attempt to detect the script from the glyph code points if not provided.
       if (script == null) {
@@ -50,7 +51,7 @@ export default class LayoutEngine {
         script = Script.forCodePoints(codePoints);
       }
 
-      var glyphs = string;
+      glyphs = string;
     }
 
     let glyphRun = new GlyphRun(glyphs, features, script, language, direction);

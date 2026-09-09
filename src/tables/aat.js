@@ -129,7 +129,7 @@ export function StateTable(entryData = {}, lookupType = r.uint16) {
 }
 
 // This is the old version of the StateTable structure
-export function StateTable1(entryData = {}, lookupType = r.uint16) {
+export function StateTable1(entryData = {}, _lookupType = r.uint16) {
   let ClassLookupTable = new r.Struct({
     version() { return 8; }, // simulate LookupTable
     firstGlyph: r.uint16,

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "before:init": ["npm run lint", "npm test"],
+    "after:bump": ["npm run build"]
+  },
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": true
+  },
+  "npm": {
+    "publish": true
+  },
+  "github": {
+    "release": false
+  }
+}

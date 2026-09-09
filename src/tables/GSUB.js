@@ -1,5 +1,5 @@
 import * as r from 'restructure';
-import {ScriptList, FeatureList, LookupList, Coverage, ClassDef, Device, Context, ChainingContext} from './opentype';
+import {ScriptList, FeatureList, LookupList, Coverage, Context, ChainingContext} from './opentype';
 import {FeatureVariations} from './variations';
 
 let Sequence = new r.Array(r.uint16, r.uint16);

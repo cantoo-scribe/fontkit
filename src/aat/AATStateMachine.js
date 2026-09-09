@@ -1,12 +1,12 @@
 import AATLookupTable from './AATLookupTable';
 
 const START_OF_TEXT_STATE = 0;
-const START_OF_LINE_STATE = 1;
+const _START_OF_LINE_STATE = 1;
 
 const END_OF_TEXT_CLASS = 0;
 const OUT_OF_BOUNDS_CLASS = 1;
 const DELETED_GLYPH_CLASS = 2;
-const END_OF_LINE_CLASS = 3;
+const _END_OF_LINE_CLASS = 3;
 
 const DONT_ADVANCE = 0x4000;
 
@@ -23,7 +23,7 @@ export default class AATStateMachine {
 
     while ((dir === 1 && index <= glyphs.length) || (dir === -1 && index >= -1)) {
       let glyph = null;
-      let classCode = OUT_OF_BOUNDS_CLASS;
+      let classCode;
       let shouldAdvance = true;
 
       if (index === glyphs.length || index === -1) {

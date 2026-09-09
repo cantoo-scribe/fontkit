@@ -1,6 +1,5 @@
 import * as fontkit from 'fontkit';
 import assert from 'assert';
-import concat from 'concat-stream';
 import * as r from 'restructure';
 import fs from 'fs';
 
@@ -20,9 +19,7 @@ describe('font subsetting', function () {
       assert.equal(f.getGlyph(1).path.toSVG(), font.glyphsForString('h')[0].path.toSVG());
     });
 
-    it('should re-encode variation glyphs', function () {
-      if (!fs.existsSync('/Library/Fonts/Skia.ttf')) return this.skip();
-
+    it.skipIf(!fs.existsSync('/Library/Fonts/Skia.ttf'))('should re-encode variation glyphs', function () {
       let font = fontkit.openSync('/Library/Fonts/Skia.ttf', 'Bold');
       let subset = font.createSubset();
       for (let glyph of font.glyphsForString('e')) {

@@ -76,7 +76,7 @@ export default class GPOSProcessor extends OTProcessor {
         }
 
         switch (table.version) {
-          case 1: // Adjustments for glyph pairs
+          case 1: { // Adjustments for glyph pairs
             let set = table.pairSets.get(index);
 
             for (let pair of set) {
@@ -88,19 +88,23 @@ export default class GPOSProcessor extends OTProcessor {
             }
 
             return false;
+          }
 
-          case 2: // Class pair adjustment
+          case 2: { // Class pair adjustment
             let class1 = this.getClassID(this.glyphIterator.cur.id, table.classDef1);
             let class2 = this.getClassID(nextGlyph.id, table.classDef2);
             if (class1 === -1 || class2 === -1) {
               return false;
             }
 
-            var pair = table.classRecords.get(class1).get(class2);
+            let pair = table.classRecords.get(class1).get(class2);
             this.applyPositionValue(0, pair.value1);
             this.applyPositionValue(1, pair.value2);
             return true;
+          }
         }
+
+        return false;
       }
 
       case 3: { // Cursive Attachment Positioning
@@ -276,7 +280,6 @@ export default class GPOSProcessor extends OTProcessor {
     let baseCoords = this.getAnchor(baseAnchor);
     let markCoords = this.getAnchor(markRecord.markAnchor);
 
-    let basePos = this.positions[baseGlyphIndex];
     let markPos = this.positions[this.glyphIterator.index];
 
     markPos.xOffset = baseCoords.x - markCoords.x;

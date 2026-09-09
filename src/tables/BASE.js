@@ -1,5 +1,5 @@
 import * as r from 'restructure';
-import {ScriptList, FeatureList, LookupList, Coverage, ClassDef, Device} from './opentype';
+import {Device} from './opentype';
 import {ItemVariationStore} from './variations';
 
 let BaseCoord = new r.VersionedStruct(r.uint16, {

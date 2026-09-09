@@ -17,8 +17,8 @@ export default class AATLookupTable {
         let max = this.table.binarySearchHeader.nUnits - 1;
 
         while (min <= max) {
-          var mid = (min + max) >> 1;
-          var seg = this.table.segments[mid];
+          let mid = (min + max) >> 1;
+          let seg = this.table.segments[mid];
 
           // special end of search value
           if (seg.firstGlyph === 0xffff) {
@@ -46,8 +46,8 @@ export default class AATLookupTable {
         let max = this.table.binarySearchHeader.nUnits - 1;
 
         while (min <= max) {
-          var mid = (min + max) >> 1;
-          var seg = this.table.segments[mid];
+          let mid = (min + max) >> 1;
+          let seg = this.table.segments[mid];
 
           // special end of search value
           if (seg.glyph === 0xffff) {

@@ -1,7 +1,3 @@
-import * as r from 'restructure';
-
-const resolved = Promise.resolve();
-
 export default class Subset {
   constructor(font) {
     this.font = font;

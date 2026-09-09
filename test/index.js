@@ -44,9 +44,9 @@ describe('fontkit', function () {
   });
 
   it('should error when opening an invalid font asynchronously', async function () {
-    assert.rejects(
+    await assert.rejects(
       fontkit.open(new URL(import.meta.url)),
-      'Unknown font format'
+      /Unknown font format/
     );
   });
 

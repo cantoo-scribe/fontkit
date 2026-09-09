@@ -1,0 +1,42 @@
+number,url,created_at,title
+386,https://github.com/foliojs/fontkit/pull/386,2026-08-08,Replace tiny-inflate by fflate
+384,https://github.com/foliojs/fontkit/pull/384,2026-07-04,Fix empty CFF subset charset range
+381,https://github.com/foliojs/fontkit/pull/381,2026-06-15,Evaluate FeatureVariations at the default location
+380,https://github.com/foliojs/fontkit/pull/380,2026-06-15,Compose canonical decompositions (NFC) in the default shaper
+377,https://github.com/foliojs/fontkit/pull/377,2026-05-21,Fix getVariation() for WOFF and WOFF2 fonts
+376,https://github.com/foliojs/fontkit/pull/376,2026-05-20,"Add Thai shaper, ported from HarfBuzz"
+375,https://github.com/foliojs/fontkit/pull/375,2026-05-20,"Add Hebrew shaper, ported from HarfBuzz"
+374,https://github.com/foliojs/fontkit/pull/374,2026-05-20,Skip mark-positioning lookups with null anchors instead of crashing
+373,https://github.com/foliojs/fontkit/pull/373,2026-05-20,Honour useMarkFilteringSet lookup flag during glyph iteration
+372,https://github.com/foliojs/fontkit/pull/372,2026-05-20,Fix chaining context backtrack matching order
+371,https://github.com/foliojs/fontkit/pull/371,2026-05-20,Honour user alternateNumber in GSUB Type 3 substitutions
+370,https://github.com/foliojs/fontkit/pull/370,2026-05-20,Add support for GSUB Type 8 (Reverse Chaining Contextual Single Substitution)
+366,https://github.com/foliojs/fontkit/pull/366,2026-02-24,Fix CBDT emoji font crash and COLR v1/composite glyph crashes
+355,https://github.com/foliojs/fontkit/pull/355,2024-12-11,Deleted duplicate key axisIndex.
+352,https://github.com/foliojs/fontkit/pull/352,2024-11-01,Handle possible undefined anchors
+350,https://github.com/foliojs/fontkit/pull/350,2024-10-25,Fix for the bug where the default language in global settings cannot be changed
+349,https://github.com/foliojs/fontkit/pull/349,2024-10-24,Fix bug in variation form lookup
+346,https://github.com/foliojs/fontkit/pull/346,2024-08-14,Update package-lock.json
+341,https://github.com/foliojs/fontkit/pull/341,2024-07-30,Fixes issue #340
+338,https://github.com/foliojs/fontkit/pull/338,2024-07-08,Fix codePointsForGlyph() for values >= 0xffff
+337,https://github.com/foliojs/fontkit/pull/337,2024-06-07,Downgrades and locks to restructure 3.0.0
+324,https://github.com/foliojs/fontkit/pull/324,2023-12-05,Treat nameID 2 and 17 both as name record and font-feature record
+323,https://github.com/foliojs/fontkit/pull/323,2023-12-01,treat endchar operator with 4 arguments as seac operator (fix #322)
+313,https://github.com/foliojs/fontkit/pull/313,2023-07-01,remove duplicate axisIndex
+311,https://github.com/foliojs/fontkit/pull/311,2023-04-19,Added missing name table names + tests
+310,https://github.com/foliojs/fontkit/pull/310,2023-04-17,includeTable for subset
+307,https://github.com/foliojs/fontkit/pull/307,2023-04-07,A little more metrics for glyphs
+306,https://github.com/foliojs/fontkit/pull/306,2023-04-07,Respect `useTypoMetrics`
+305,https://github.com/foliojs/fontkit/pull/305,2023-04-07,`vhea` and `glyf` fixes
+300,https://github.com/foliojs/fontkit/pull/300,2023-01-30,Add LICENSE
+299,https://github.com/foliojs/fontkit/pull/299,2023-01-08,Bump json5 from 2.2.1 to 2.2.3
+298,https://github.com/foliojs/fontkit/pull/298,2022-12-02,COLRv1 support
+294,https://github.com/foliojs/fontkit/pull/294,2022-09-14,Handle 'frac' substitutions globally
+293,https://github.com/foliojs/fontkit/pull/293,2022-08-14,Add TypeScript typings generation from JSDocs; Updated some docs
+290,https://github.com/foliojs/fontkit/pull/290,2022-07-21,Bump terser from 5.14.1 to 5.14.2
+288,https://github.com/foliojs/fontkit/pull/288,2022-07-20,Add package.json to exports
+283,https://github.com/foliojs/fontkit/pull/283,2022-06-22,Bump shell-quote from 1.6.1 to 1.7.3
+278,https://github.com/foliojs/fontkit/pull/278,2022-05-25,Fix the Variation Selector handling
+163,https://github.com/foliojs/fontkit/pull/163,2018-05-05,string-index => master
+96,https://github.com/foliojs/fontkit/pull/96,2017-05-17,Add new Opentype STAT table
+90,https://github.com/foliojs/fontkit/pull/90,2017-05-07,[WIP] Support subsetting CFF2 fonts for use in PDFs

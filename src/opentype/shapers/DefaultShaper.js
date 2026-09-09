@@ -4,7 +4,7 @@ const VARIATION_FEATURES = ['rvrn'];
 const COMMON_FEATURES = ['ccmp', 'locl', 'rlig', 'mark', 'mkmk'];
 const FRACTIONAL_FEATURES = ['frac', 'numr', 'dnom'];
 const HORIZONTAL_FEATURES = ['calt', 'clig', 'liga', 'rclt', 'curs', 'kern'];
-const VERTICAL_FEATURES = ['vert'];
+const _VERTICAL_FEATURES = ['vert'];
 const DIRECTIONAL_FEATURES = {
   ltr: ['ltra', 'ltrm'],
   rtl: ['rtla', 'rtlm']
@@ -32,7 +32,7 @@ export default class DefaultShaper {
     });
   }
 
-  static planFeatures(plan) {
+  static planFeatures(_plan) {
     // Do nothing by default. Let subclasses override this.
   }
 

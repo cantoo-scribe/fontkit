@@ -82,45 +82,49 @@ export default class Path {
     let bbox = new BBox;
     let cx = 0, cy = 0;
 
-    let f = t => (
-      Math.pow(1 - t, 3) * p0[i]
-        + 3 * Math.pow(1 - t, 2) * t * p1[i]
-        + 3 * (1 - t) * Math.pow(t, 2) * p2[i]
-        + Math.pow(t, 3) * p3[i]
-    );
-
     for (let c of this.commands) {
       switch (c.command) {
         case 'moveTo':
-        case 'lineTo':
+        case 'lineTo': {
           let [x, y] = c.args;
           bbox.addPoint(x, y);
           cx = x;
           cy = y;
           break;
+        }
 
         case 'quadraticCurveTo':
-        case 'bezierCurveTo':
+        case 'bezierCurveTo': {
+          let cp1x, cp1y, cp2x, cp2y, p3x, p3y;
           if (c.command === 'quadraticCurveTo') {
             // http://fontforge.org/bezier.html
-            var [qp1x, qp1y, p3x, p3y] = c.args;
-            var cp1x = cx + 2 / 3 * (qp1x - cx);    // CP1 = QP0 + 2/3 * (QP1-QP0)
-            var cp1y = cy + 2 / 3 * (qp1y - cy);
-            var cp2x = p3x + 2 / 3 * (qp1x - p3x);  // CP2 = QP2 + 2/3 * (QP1-QP2)
-            var cp2y = p3y + 2 / 3 * (qp1y - p3y);
+            let [qp1x, qp1y, qp3x, qp3y] = c.args;
+            p3x = qp3x;
+            p3y = qp3y;
+            cp1x = cx + 2 / 3 * (qp1x - cx);    // CP1 = QP0 + 2/3 * (QP1-QP0)
+            cp1y = cy + 2 / 3 * (qp1y - cy);
+            cp2x = p3x + 2 / 3 * (qp1x - p3x);  // CP2 = QP2 + 2/3 * (QP1-QP2)
+            cp2y = p3y + 2 / 3 * (qp1y - p3y);
           } else {
-            var [cp1x, cp1y, cp2x, cp2y, p3x, p3y] = c.args;
+            [cp1x, cp1y, cp2x, cp2y, p3x, p3y] = c.args;
           }
 
           // http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
           bbox.addPoint(p3x, p3y);
 
-          var p0 = [cx, cy];
-          var p1 = [cp1x, cp1y];
-          var p2 = [cp2x, cp2y];
-          var p3 = [p3x, p3y];
+          let p0 = [cx, cy];
+          let p1 = [cp1x, cp1y];
+          let p2 = [cp2x, cp2y];
+          let p3 = [p3x, p3y];
 
-          for (var i = 0; i <= 1; i++) {
+          let f = (t, i) => (
+            Math.pow(1 - t, 3) * p0[i]
+              + 3 * Math.pow(1 - t, 2) * t * p1[i]
+              + 3 * (1 - t) * Math.pow(t, 2) * p2[i]
+              + Math.pow(t, 3) * p3[i]
+          );
+
+          for (let i = 0; i <= 1; i++) {
             let b = 6 * p0[i] - 12 * p1[i] + 6 * p2[i];
             let a = -3 * p0[i] + 9 * p1[i] - 9 * p2[i] + 3 * p3[i];
             c = 3 * p1[i] - 3 * p0[i];
@@ -133,9 +137,9 @@ export default class Path {
               let t = -c / b;
               if (0 < t && t < 1) {
                 if (i === 0) {
-                  bbox.addPoint(f(t), bbox.maxY);
+                  bbox.addPoint(f(t, i), bbox.maxY);
                 } else if (i === 1) {
-                  bbox.addPoint(bbox.maxX, f(t));
+                  bbox.addPoint(bbox.maxX, f(t, i));
                 }
               }
 
@@ -150,18 +154,18 @@ export default class Path {
             let t1 = (-b + Math.sqrt(b2ac)) / (2 * a);
             if (0 < t1 && t1 < 1) {
               if (i === 0) {
-                bbox.addPoint(f(t1), bbox.maxY);
+                bbox.addPoint(f(t1, i), bbox.maxY);
               } else if (i === 1) {
-                bbox.addPoint(bbox.maxX, f(t1));
+                bbox.addPoint(bbox.maxX, f(t1, i));
               }
             }
 
             let t2 = (-b - Math.sqrt(b2ac)) / (2 * a);
             if (0 < t2 && t2 < 1) {
               if (i === 0) {
-                bbox.addPoint(f(t2), bbox.maxY);
+                bbox.addPoint(f(t2, i), bbox.maxY);
               } else if (i === 1) {
-                bbox.addPoint(bbox.maxX, f(t2));
+                bbox.addPoint(bbox.maxX, f(t2, i));
               }
             }
           }
@@ -169,6 +173,7 @@ export default class Path {
           cx = p3x;
           cy = p3y;
           break;
+        }
       }
     }
 

@@ -1,6 +1,5 @@
 import Subset from './Subset';
 import CFFTop from '../cff/CFFTop';
-import CFFPrivateDict from '../cff/CFFPrivateDict';
 import standardStrings from '../cff/CFFStandardStrings';
 
 export default class CFFSubset extends Subset {
@@ -21,7 +20,7 @@ export default class CFFSubset extends Subset {
       this.charstrings.push(this.cff.getCharString(gid));
 
       let glyph = this.font.getGlyph(gid);
-      let path = glyph.path; // this causes the glyph to be parsed
+      void glyph.path; // this causes the glyph to be parsed
 
       for (let subr in glyph._usedGsubrs) {
         gsubrs[subr] = true;
@@ -72,7 +71,7 @@ export default class CFFSubset extends Subset {
       topDict.FDSelect.fds.push(fd_select[fd]);
 
       let glyph = this.font.getGlyph(gid);
-      let path = glyph.path; // this causes the glyph to be parsed
+      void glyph.path; // this causes the glyph to be parsed
       for (let subr in glyph._usedSubrs) {
         used_subrs[fd_select[fd]][subr] = true;
       }
@@ -94,7 +93,7 @@ export default class CFFSubset extends Subset {
     let used_subrs = {};
     for (let gid of this.glyphs) {
       let glyph = this.font.getGlyph(gid);
-      let path = glyph.path; // this causes the glyph to be parsed
+      void glyph.path; // this causes the glyph to be parsed
 
       for (let subr in glyph._usedSubrs) {
         used_subrs[subr] = true;

@@ -91,15 +91,16 @@ export default class CFFOperand {
       stream.writeUInt8(30);
 
       let str = '' + val;
+      let n2;
       for (let i = 0; i < str.length; i += 2) {
         let c1 = str[i];
         let n1 = FLOAT_ENCODE_LOOKUP[c1] || +c1;
 
         if (i === str.length - 1) {
-          var n2 = FLOAT_EOF;
+          n2 = FLOAT_EOF;
         } else {
           let c2 = str[i + 1];
-          var n2 = FLOAT_ENCODE_LOOKUP[c2] || +c2;
+          n2 = FLOAT_ENCODE_LOOKUP[c2] || +c2;
         }
 
         stream.writeUInt8((n1 << 4) | (n2 & 15));

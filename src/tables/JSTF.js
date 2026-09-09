@@ -1,5 +1,5 @@
 import * as r from 'restructure';
-import { ScriptList, FeatureList, LookupList, Coverage, ClassDef, Device } from './opentype';
+import { LookupList } from './opentype';
 import { GPOSLookup } from './GPOS';
 
 let JstfGSUBModList = new r.Array(r.uint16, r.uint16);

@@ -2,10 +2,6 @@ import * as r from 'restructure';
 import TTFFont from './TTFFont';
 
 let DFontName = new r.String(r.uint8);
-let DFontData = new r.Struct({
-  len: r.uint32,
-  buf: new r.Buffer('len')
-});
 
 let Ref = new r.Struct({
   id: r.uint16,

@@ -41,7 +41,7 @@ export default class KernProcessor {
       let val = 0;
       let s = table.subtable;
       switch (table.format) {
-        case 0:
+        case 0: {
           let pairIdx = binarySearch(s.pairs, function (pair) {
             return (left - pair.left) || (right - pair.right);
           });
@@ -51,9 +51,10 @@ export default class KernProcessor {
           }
 
           break;
+        }
 
-        case 2:
-          let leftOffset = 0, rightOffset = 0;
+        case 2: {
+          let leftOffset, rightOffset = 0;
           if (left >= s.leftTable.firstGlyph && left < s.leftTable.firstGlyph + s.leftTable.nGlyphs) {
             leftOffset = s.leftTable.offsets[left - s.leftTable.firstGlyph];
           } else {
@@ -67,14 +68,16 @@ export default class KernProcessor {
           let index = (leftOffset + rightOffset - s.array.off) / 2;
           val = s.array.values.get(index);
           break;
+        }
 
-        case 3:
+        case 3: {
           if (left >= s.glyphCount || right >= s.glyphCount) {
             return 0;
           }
 
           val = s.kernValue[s.kernIndex[s.leftClass[left] * s.rightClassCount + s.rightClass[right]]];
           break;
+        }
 
         default:
           throw new Error(`Unsupported kerning sub-table format ${table.format}`);

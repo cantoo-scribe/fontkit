@@ -3,16 +3,13 @@ import assert from 'assert';
 import fs from 'fs';
 
 describe('variations', function () {
-  describe('Skia', function () {
-    let font;
-    if (fs.existsSync('/Library/Fonts/Skia.ttf')) {
-      font = fontkit.openSync('/Library/Fonts/Skia.ttf');
-    }
+  const hasSkia = fs.existsSync('/Library/Fonts/Skia.ttf');
 
-    beforeEach(function () {
-      if (!font) {
-        this.skip();
-      }
+  describe.skipIf(!hasSkia)('Skia', function () {
+    let font;
+
+    beforeAll(function () {
+      font = fontkit.openSync('/Library/Fonts/Skia.ttf');
     });
 
     it('should get available variation axes', function () {

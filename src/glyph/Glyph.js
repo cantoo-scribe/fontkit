@@ -65,21 +65,22 @@ export default class Glyph {
     let {advance:advanceWidth, bearing:leftBearing} = this._getTableMetrics(this._font.hmtx);
 
     // For vertical metrics, use vmtx if available, or fall back to global data from OS/2 or hhea
+    let advanceHeight, topBearing;
     if (this._font.vmtx) {
-      var {advance:advanceHeight, bearing:topBearing} = this._getTableMetrics(this._font.vmtx);
+      ({advance: advanceHeight, bearing: topBearing} = this._getTableMetrics(this._font.vmtx));
 
     } else {
       let os2;
       if (typeof cbox === 'undefined' || cbox === null) { ({ cbox } = this); }
 
       if ((os2 = this._font['OS/2']) && os2.version > 0) {
-        var advanceHeight = Math.abs(os2.typoAscender - os2.typoDescender);
-        var topBearing = os2.typoAscender - cbox.maxY;
+        advanceHeight = Math.abs(os2.typoAscender - os2.typoDescender);
+        topBearing = os2.typoAscender - cbox.maxY;
 
       } else {
         let { hhea } = this._font;
-        var advanceHeight = Math.abs(hhea.ascent - hhea.descent);
-        var topBearing = hhea.ascent - cbox.maxY;
+        advanceHeight = Math.abs(hhea.ascent - hhea.descent);
+        topBearing = hhea.ascent - cbox.maxY;
       }
     }
 
@@ -155,7 +156,9 @@ export default class Glyph {
     return this._getMetrics().advanceHeight;
   }
 
-  get ligatureCaretPositions() {}
+  get ligatureCaretPositions() {
+    return null;
+  }
 
   _getName() {
     let { post } = this._font;
@@ -167,13 +170,14 @@ export default class Glyph {
       case 1:
         return StandardNames[this.id];
 
-      case 2:
+      case 2: {
         let id = post.glyphNameIndex[this.id];
         if (id < StandardNames.length) {
           return StandardNames[id];
         }
 
         return post.names[id - StandardNames.length];
+      }
 
       case 2.5:
         return StandardNames[this.id + post.offsets[this.id]];

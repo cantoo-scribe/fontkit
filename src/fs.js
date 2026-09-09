@@ -6,12 +6,7 @@ export function openSync(filename, postscriptName) {
   return create(buffer, postscriptName);
 }
 
-export async function open(filename, postscriptName, callback) {
-  if (typeof postscriptName === 'function') {
-    callback = postscriptName;
-    postscriptName = null;
-  }
-
+export async function open(filename, postscriptName) {
   let buffer = await fs.promises.readFile(filename);
   return create(buffer, postscriptName);
 }

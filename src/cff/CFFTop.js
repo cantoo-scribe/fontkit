@@ -4,7 +4,6 @@ import CFFDict from './CFFDict';
 import CFFIndex from './CFFIndex';
 import CFFPointer from './CFFPointer';
 import CFFPrivateDict from './CFFPrivateDict';
-import StandardStrings from './CFFStandardStrings';
 import { StandardEncoding, ExpertEncoding } from './CFFEncodings';
 import { ISOAdobeCharset, ExpertCharset, ExpertSubsetCharset } from './CFFCharsets';
 import { ItemVariationStore } from '../tables/variations';

@@ -139,7 +139,7 @@ export default class GSUBProcessor extends OTProcessor {
               idx = matchIndex;
             } else {
               while (idx < matchIndex) {
-                var ligatureComponent = curComps - lastNumComps + Math.min(this.glyphs[idx].ligatureComponent || 1, lastNumComps);
+                let ligatureComponent = curComps - lastNumComps + Math.min(this.glyphs[idx].ligatureComponent || 1, lastNumComps);
                 this.glyphs[idx].ligatureID = ligatureGlyph.ligatureID;
                 this.glyphs[idx].ligatureComponent = ligatureComponent;
                 idx++;
@@ -156,7 +156,7 @@ export default class GSUBProcessor extends OTProcessor {
           if (lastLigID && !isMarkLigature) {
             for (let i = idx; i < this.glyphs.length; i++) {
               if (this.glyphs[i].ligatureID === lastLigID) {
-                var ligatureComponent = curComps - lastNumComps + Math.min(this.glyphs[i].ligatureComponent || 1, lastNumComps);
+                let ligatureComponent = curComps - lastNumComps + Math.min(this.glyphs[i].ligatureComponent || 1, lastNumComps);
                 this.glyphs[i].ligatureComponent = ligatureComponent;
               } else {
                 break;
