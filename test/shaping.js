@@ -598,4 +598,12 @@ describe('shaping', function () {
       assert.deepEqual(glyphs.map(g => g.name), ['A.alt']);
     });
   });
+
+  describe('reverse chaining contextual single substitution (GSUB Type 8)', function () {
+    // Noto Coptic ccmp uses Type 8 (RTL) to select .cap macron variants.
+    test('GSUB Type 8: Coptic stacked-macron .cap variant',
+      'NotoCoptic/NotoSansCoptic-Regular.ttf',
+      'Ⲁ̅ⲁ̅',
+      '33+633|196@-319,0+0|34+574|199@-291,0+0');
+  });
 });

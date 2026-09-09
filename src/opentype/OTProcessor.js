@@ -193,24 +193,31 @@ export default class OTProcessor {
 
     for (let { feature, lookup } of lookups) {
       this.currentFeature = feature;
-      this.glyphIterator.reset(lookup.flags, 0, this.getMarkFilteringSet(lookup));
 
-      while (this.glyphIterator.index < glyphs.length) {
-        if (!(feature in this.glyphIterator.cur.features)) {
-          this.glyphIterator.next();
-          continue;
-        }
+      // Direction may be RTL for some lookups (see lookupDirection).
+      let direction = this.lookupDirection(lookup);
+      this.glyphIterator.reset(
+        lookup.flags,
+        direction < 0 ? glyphs.length - 1 : 0,
+        this.getMarkFilteringSet(lookup)
+      );
 
-        for (let table of lookup.subTables) {
-          let res = this.applyLookup(lookup.lookupType, table);
-          if (res) {
-            break;
+      while (this.glyphIterator.index >= 0 && this.glyphIterator.index < glyphs.length) {
+        if (feature in this.glyphIterator.cur.features) {
+          for (let table of lookup.subTables) {
+            if (this.applyLookup(lookup.lookupType, table)) {
+              break;
+            }
           }
         }
-
-        this.glyphIterator.next();
+        this.glyphIterator.move(direction);
       }
     }
+  }
+
+  // Subclasses may reverse iteration for specific lookup types (e.g. GSUB Type 8).
+  lookupDirection(_lookup) {
+    return 1;
   }
 
   applyLookup(_lookup, _table) {

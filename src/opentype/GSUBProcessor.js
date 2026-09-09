@@ -2,6 +2,11 @@ import OTProcessor from './OTProcessor';
 import GlyphInfo from './GlyphInfo';
 
 export default class GSUBProcessor extends OTProcessor {
+  lookupDirection(lookup) {
+    let type = lookup.lookupType === 7 ? lookup.subTables[0]?.lookupType : lookup.lookupType;
+    return type === 8 ? -1 : 1;
+  }
+
   applyLookup(lookupType, table) {
     switch (lookupType) {
       case 1: { // Single Substitution
@@ -184,6 +189,22 @@ export default class GSUBProcessor extends OTProcessor {
 
       case 7: // Extension Substitution
         return this.applyLookup(table.lookupType, table.extension);
+
+      case 8: { // Reverse Chaining Contextual Single Substitution
+        let index = this.coverageIndex(table.coverage);
+        if (index === -1) {
+          return false;
+        }
+
+        // Backtrack is stored closest-first; coverageSequenceMatches walks furthest-first.
+        if (!this.coverageSequenceMatches(-table.backtrackGlyphCount, [...table.backtrackCoverage].reverse())
+          || !this.coverageSequenceMatches(1, table.lookaheadCoverage)) {
+          return false;
+        }
+
+        this.glyphIterator.cur.id = table.substitute.get(index);
+        return true;
+      }
 
       default:
         throw new Error(`GSUB lookupType ${lookupType} is not supported`);
