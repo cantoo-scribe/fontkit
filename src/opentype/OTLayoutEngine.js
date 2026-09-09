@@ -37,10 +37,11 @@ export default class OTLayoutEngine {
       script = this.GSUBProcessor.selectScript(glyphRun.script, glyphRun.language, glyphRun.direction);
     }
 
-    // Choose a shaper based on the script, and setup a shaping plan.
-    // This determines which features to apply to which glyphs.
-    this.shaper = Shapers.choose(script);
-    this.plan = new ShapingPlan(this.font, script, glyphRun.direction);
+    // Choose a shaper / plan. Fall back to the buffer Unicode script when
+    // neither GSUB nor GPOS selected an OT script (needed for Thai PUA etc).
+    let shaperScript = script || glyphRun.script;
+    this.shaper = Shapers.choose(shaperScript);
+    this.plan = new ShapingPlan(this.font, shaperScript, glyphRun.direction);
     this.shaper.plan(this.plan, this.glyphInfos, glyphRun.features);
 
     // Enabled features as true, then overlay user values (e.g. aalt: 2) without mutating input.

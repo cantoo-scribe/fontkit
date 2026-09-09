@@ -107,6 +107,42 @@ describe('shaping', function () {
       '11@506,0+0|22@744,0+0|17@739,0+0|28+1048');
   });
 
+  describe('thai shaper', function () {
+    // SARA AM → NIKHAHIT + SARA AA; enables GSUB tone-shift chains
+    test('should decompose SARA AM and shift tone mark',
+      'NotoSans/NotoSansThai-Regular.ttf', 'น้ำ',
+      '71+613|59+0|49@-29,0+0|86+406');
+
+    test('should decompose SARA AM with mai-ek tone',
+      'NotoSans/NotoSansThai-Regular.ttf', 'ก่ำ',
+      '29+600|59@-2,0+0|44@-31,0+0|86+406');
+
+    test('should decompose SARA AM after a consonant with an ascender',
+      'NotoSans/NotoSansThai-Regular.ttf', 'ข่ำ',
+      '23+547|59@7,0+0|44@-22,0+0|86+406');
+
+    test('should shape สวัสดี',
+      'NotoSans/NotoSansThai-Regular.ttf', 'สวัสดี',
+      '110+572|134+492|45@10,0+0|110+572|12+616|94+0');
+
+    test('should decompose a bare SARA AM',
+      'NotoSans/NotoSansThai-Regular.ttf', 'ำ',
+      '59+0|86+406');
+
+    test('should reorder NIKHAHIT past a leading above-mark with no base',
+      'NotoSans/NotoSansThai-Regular.ttf', 'ัำ',
+      '59+0|45@-29,236+0|86+406');
+
+    test('should decompose multiple SARA AMs in one word',
+      'NotoSans/NotoSansThai-Regular.ttf', 'น้ำน้ำ',
+      '71+613|59+0|49@-29,0+0|86+406|71+613|59+0|49@-29,0+0|86+406');
+
+    // Lao SARA AM via script-agnostic mask + 'lao ' OT tag
+    test('should decompose Lao SARA AM and reorder NIKHAHIT past an above-mark',
+      'NotoSans/NotoSansLao-Regular.ttf', 'ຫັຳ',
+      '28+726|72@-28,0+0|58@-152,278+0|34+324');
+  });
+
   describe('hangul shaper', function () {
     let font = fontkit.openSync(new URL('data/NotoSansCJK/NotoSansCJKkr-Regular.otf', import.meta.url));
 
