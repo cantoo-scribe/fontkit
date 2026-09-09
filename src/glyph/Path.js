@@ -56,14 +56,18 @@ export default class Path {
    */
   get cbox() {
     if (!this._cbox) {
-      let cbox = new BBox;
-      for (let command of this.commands) {
-        for (let i = 0; i < command.args.length; i += 2) {
-          cbox.addPoint(command.args[i], command.args[i + 1]);
+      if (this.commands.length === 0) {
+        this._cbox = Object.freeze(new BBox(0, 0, 0, 0));
+      } else {
+        let cbox = new BBox;
+        for (let command of this.commands) {
+          for (let i = 0; i < command.args.length; i += 2) {
+            cbox.addPoint(command.args[i], command.args[i + 1]);
+          }
         }
-      }
 
-      this._cbox = Object.freeze(cbox);
+        this._cbox = Object.freeze(cbox);
+      }
     }
 
     return this._cbox;
@@ -77,6 +81,10 @@ export default class Path {
   get bbox() {
     if (this._bbox) {
       return this._bbox;
+    }
+
+    if (this.commands.length === 0) {
+      return this._bbox = Object.freeze(new BBox(0, 0, 0, 0));
     }
 
     let bbox = new BBox;

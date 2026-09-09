@@ -74,12 +74,16 @@ export default class TTFGlyph extends Glyph {
       return this.path.cbox;
     }
 
-    let stream = this._font._getTableStream('glyf');
-    stream.pos += this._font.loca.offsets[this.id];
-    let glyph = GlyfHeader.decode(stream);
+    let glyfPos = this._font.loca.offsets[this.id];
+    // No outline data (e.g. space): avoid decoding the next glyph's header
+    if (glyfPos === this._font.loca.offsets[this.id + 1]) {
+      return Object.freeze(new BBox(0, 0, 0, 0));
+    }
 
-    let cbox = new BBox(glyph.xMin, glyph.yMin, glyph.xMax, glyph.yMax);
-    return Object.freeze(cbox);
+    let stream = this._font._getTableStream('glyf');
+    stream.pos += glyfPos;
+    let glyph = GlyfHeader.decode(stream);
+    return Object.freeze(new BBox(glyph.xMin, glyph.yMin, glyph.xMax, glyph.yMax));
   }
 
   // Parses a single glyph coordinate
@@ -292,10 +296,13 @@ export default class TTFGlyph extends Glyph {
 
     // Recompute and cache metrics if we performed variation processing, and don't have an HVAR table
     if (glyph.phantomPoints && !this._font.directory.tables.HVAR) {
-      this._metrics.advanceWidth  = glyph.phantomPoints[1].x - glyph.phantomPoints[0].x;
-      this._metrics.advanceHeight = glyph.phantomPoints[3].y - glyph.phantomPoints[2].y;
-      this._metrics.leftBearing   = glyph.xMin - glyph.phantomPoints[0].x;
-      this._metrics.topBearing    = glyph.phantomPoints[2].y - glyph.yMax;
+      let m = this._metrics;
+      m.advanceWidth  = glyph.phantomPoints[1].x - glyph.phantomPoints[0].x;
+      m.advanceHeight = glyph.phantomPoints[3].y - glyph.phantomPoints[2].y;
+      m.leftBearing   = glyph.xMin - glyph.phantomPoints[0].x;
+      m.topBearing    = glyph.phantomPoints[2].y - glyph.yMax;
+      m.rightBearing  = m.advanceWidth - m.leftBearing - m.width;
+      m.bottomBearing = m.advanceHeight - m.topBearing - m.height;
     }
 
     let contours = [];

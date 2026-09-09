@@ -18,6 +18,7 @@ describe('metadata', function () {
     assert.equal(font.ascent | 0, 2189);
     assert.equal(font.descent | 0, -600);
     assert.equal(font.lineGap, 0);
+    assert.equal(font.lineHeight, 2789);
     assert.equal(font.underlinePosition, -154);
     assert.equal(font.underlineThickness, 102);
     assert.equal(font.italicAngle, 0);

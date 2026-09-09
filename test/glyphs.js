@@ -82,6 +82,30 @@ describe('glyphs', function () {
       return assert.equal(glyph.advanceWidth | 0, 1493);
     });
 
+    it('should get glyph size and side bearings', function () {
+      let glyph = font.getGlyph(39); // D
+      assert.equal(glyph.width, 1167);
+      assert.equal(glyph.height, 1462);
+      assert.equal(glyph.advanceHeight, 2789);
+      assert.equal(glyph.leftBearing, 201);
+      assert.equal(glyph.topBearing, 727);
+      assert.equal(glyph.rightBearing, 125);
+      assert.equal(glyph.bottomBearing, 600);
+    });
+
+    it('should get zero cbox for empty glyphs', function () {
+      let glyph = font.glyphsForString(' ')[0];
+      assert.equal(glyph.cbox.minX, 0);
+      assert.equal(glyph.cbox.minY, 0);
+      assert.equal(glyph.cbox.maxX, 0);
+      assert.equal(glyph.cbox.maxY, 0);
+      assert.equal(glyph.width, 0);
+      assert.equal(glyph.height, 0);
+      assert.equal(glyph.advanceWidth, 532);
+      assert.equal(glyph.leftBearing, 0);
+      assert.equal(glyph.rightBearing, 532);
+    });
+
     it('should get the glyph name', function () {
       let glyph = font.getGlyph(171);
       return assert.equal(glyph.name, 'eacute');

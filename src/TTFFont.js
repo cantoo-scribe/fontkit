@@ -94,6 +94,43 @@ export default class TTFFont {
     return result;
   }
 
+  _getMetrics() {
+    if (this._metrics) {
+      return this._metrics;
+    }
+
+    // Same compromise as FreeType for ascender/descender/height:
+    // https://gitlab.freedesktop.org/freetype/freetype/-/blob/master/src/sfnt/sfobjs.c
+    // typo*/win* fields exist only in OS/2 version >= 1
+    let os2 = this['OS/2'];
+    let hasTypo = os2 && os2.version > 0;
+    let ascent, descent, lineGap;
+
+    if (hasTypo && os2.fsSelection.useTypoMetrics) {
+      ({typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap} = os2);
+    } else {
+      ({ascent, descent, lineGap} = this.hhea);
+
+      // Only when both hhea values are zero — FreeType uses !(ascender || descender)
+      if (!(ascent || descent) && hasTypo) {
+        if (os2.typoAscender || os2.typoDescender) {
+          ({typoAscender: ascent, typoDescender: descent, typoLineGap: lineGap} = os2);
+        } else {
+          ascent = os2.winAscent;
+          descent = -os2.winDescent;
+          lineGap = 0;
+        }
+      }
+    }
+
+    return this._metrics = {
+      ascent,
+      descent,
+      lineGap,
+      lineHeight: ascent - descent + lineGap
+    };
+  }
+
   /**
    * Gets a string from the font's `name` table
    * `lang` is a BCP-47 language code.
@@ -169,7 +206,7 @@ export default class TTFFont {
    * @type {number}
    */
   get ascent() {
-    return this.hhea.ascent;
+    return this._getMetrics().ascent;
   }
 
   /**
@@ -177,7 +214,7 @@ export default class TTFFont {
    * @type {number}
    */
   get descent() {
-    return this.hhea.descent;
+    return this._getMetrics().descent;
   }
 
   /**
@@ -185,7 +222,7 @@ export default class TTFFont {
    * @type {number}
    */
   get lineGap() {
-    return this.hhea.lineGap;
+    return this._getMetrics().lineGap;
   }
 
   /**
@@ -210,6 +247,15 @@ export default class TTFFont {
    */
   get italicAngle() {
     return this.post.italicAngle;
+  }
+
+  /**
+   * The vertical space between adjacent lines (their baselines) of text.
+   * See [here](https://en.wikipedia.org/wiki/Leading) for more details.
+   * @type {number}
+   */
+  get lineHeight() {
+    return this._getMetrics().lineHeight;
   }
 
   /**

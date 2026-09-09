@@ -61,34 +61,34 @@ export default class Glyph {
 
   _getMetrics(cbox) {
     if (this._metrics) { return this._metrics; }
+    if (cbox == null) { ({ cbox } = this); }
 
-    let {advance:advanceWidth, bearing:leftBearing} = this._getTableMetrics(this._font.hmtx);
+    let {advance: advanceWidth, bearing: leftBearing} = this._getTableMetrics(this._font.hmtx);
 
-    // For vertical metrics, use vmtx if available, or fall back to global data from OS/2 or hhea
+    // Vertical metrics: vmtx, else font ascent/descent (respects useTypoMetrics)
     let advanceHeight, topBearing;
     if (this._font.vmtx) {
       ({advance: advanceHeight, bearing: topBearing} = this._getTableMetrics(this._font.vmtx));
-
     } else {
-      let os2;
-      if (typeof cbox === 'undefined' || cbox === null) { ({ cbox } = this); }
-
-      if ((os2 = this._font['OS/2']) && os2.version > 0) {
-        advanceHeight = Math.abs(os2.typoAscender - os2.typoDescender);
-        topBearing = os2.typoAscender - cbox.maxY;
-
-      } else {
-        let { hhea } = this._font;
-        advanceHeight = Math.abs(hhea.ascent - hhea.descent);
-        topBearing = hhea.ascent - cbox.maxY;
-      }
+      advanceHeight = Math.abs(this._font.ascent - this._font.descent);
+      topBearing = this._font.ascent - cbox.maxY;
     }
 
     if (this._font._variationProcessor && this._font.HVAR) {
       advanceWidth += this._font._variationProcessor.getAdvanceAdjustment(this.id, this._font.HVAR);
     }
 
-    return this._metrics = { advanceWidth, advanceHeight, leftBearing, topBearing };
+    let {width, height} = cbox;
+    return this._metrics = {
+      width,
+      height,
+      advanceWidth,
+      advanceHeight,
+      leftBearing,
+      topBearing,
+      rightBearing: advanceWidth - leftBearing - width,
+      bottomBearing: advanceHeight - topBearing - height
+    };
   }
 
   /**
@@ -139,6 +139,24 @@ export default class Glyph {
   }
 
   /**
+   * The glyph's width.
+   * @type {number}
+   */
+  @cache
+  get width() {
+    return this._getMetrics().width;
+  }
+
+  /**
+   * The glyph's height.
+   * @type {number}
+   */
+  @cache
+  get height() {
+    return this._getMetrics().height;
+  }
+
+  /**
    * The glyph's advance width.
    * @type {number}
    */
@@ -154,6 +172,42 @@ export default class Glyph {
   @cache
   get advanceHeight() {
     return this._getMetrics().advanceHeight;
+  }
+
+  /**
+   * The glyph's left side bearing.
+   * @type {number}
+   */
+  @cache
+  get leftBearing() {
+    return this._getMetrics().leftBearing;
+  }
+
+  /**
+   * The glyph's top side bearing.
+   * @type {number}
+   */
+  @cache
+  get topBearing() {
+    return this._getMetrics().topBearing;
+  }
+
+  /**
+   * The glyph's right side bearing.
+   * @type {number}
+   */
+  @cache
+  get rightBearing() {
+    return this._getMetrics().rightBearing;
+  }
+
+  /**
+   * The glyph's bottom side bearing.
+   * @type {number}
+   */
+  @cache
+  get bottomBearing() {
+    return this._getMetrics().bottomBearing;
   }
 
   get ligatureCaretPositions() {
