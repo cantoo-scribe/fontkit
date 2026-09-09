@@ -1,6 +1,6 @@
 {
   "name": "@cantoo/unicode-trie",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unicode Trie data structure for fast character metadata lookup, ported from ICU (fflate, no tiny-inflate/pako)",
   "type": "module",
   "main": "./dist/index.cjs",

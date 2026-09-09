@@ -1,6 +1,6 @@
 {
   "name": "@cantoo/unicode-properties",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast access to unicode character properties (vendored for @cantoo/fontkit)",
   "type": "module",
   "main": "./dist/index.cjs",
