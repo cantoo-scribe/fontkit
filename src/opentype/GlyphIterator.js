@@ -4,10 +4,11 @@ export default class GlyphIterator {
     this.reset(options);
   }
 
-  reset(options = {}, index = 0) {
+  reset(options = {}, index = 0, markFilteringSet = null) {
     this.options = options;
     this.flags = options.flags || {};
     this.markAttachmentType = options.markAttachmentType || 0;
+    this.markFilteringSet = markFilteringSet;
     this.index = index;
   }
 
@@ -16,10 +17,21 @@ export default class GlyphIterator {
   }
 
   shouldIgnore(glyph) {
-    return (this.flags.ignoreMarks && glyph.isMark) ||
-           (this.flags.ignoreBaseGlyphs && glyph.isBase) ||
-           (this.flags.ignoreLigatures && glyph.isLigature) ||
-           (this.markAttachmentType && glyph.isMark && glyph.markAttachmentType !== this.markAttachmentType);
+    // Mark skip hierarchy (OT chapter 2): ignoreMarks > mark filtering set > markAttachmentType.
+    if (glyph.isMark) {
+      if (this.flags.ignoreMarks) {
+        return true;
+      }
+      if (this.flags.useMarkFilteringSet) {
+        return !this.markFilteringSet?.has(glyph.id);
+      }
+      if (this.markAttachmentType) {
+        return glyph.markAttachmentType !== this.markAttachmentType;
+      }
+    }
+
+    return (this.flags.ignoreBaseGlyphs && glyph.isBase) ||
+           (this.flags.ignoreLigatures && glyph.isLigature);
   }
 
   move(dir) {
