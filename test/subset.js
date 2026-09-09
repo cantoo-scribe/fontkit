@@ -55,10 +55,41 @@ describe('font subsetting', function () {
       // must test also second glyph which has an odd loca index
       assert.equal(f.getGlyph(2).path.toSVG(), font.glyphsForString('b')[0].path.toSVG());
     });
+
+    it('should produce a subset including font table OS/2', function () {
+      let subset = font.createSubset();
+      for (let glyph of font.glyphsForString('hello')) {
+        subset.includeGlyph(glyph);
+      }
+      subset.includeTable('OS/2');
+
+      let buf = subset.encode();
+      let f = fontkit.create(buf);
+      assert.ok(f.directory.tables['OS/2']);
+      assert.equal(f['OS/2'].achVendID, font['OS/2'].achVendID);
+      assert.equal(f['OS/2'].usWeightClass, font['OS/2'].usWeightClass);
+    });
+
+    it('should reject invalid or unsafe includeTable tags', function () {
+      let subset = font.createSubset();
+
+      assert.throws(() => subset.includeTable('cvt'), /4 characters/);
+      assert.throws(() => subset.includeTable('glyf'), /already managed/);
+      assert.throws(() => subset.includeTable('ZZZZ'), /not present/);
+
+      subset.includeTable('OS/2');
+      subset.includeTable('OS/2'); // idempotent
+      assert.deepEqual(subset.includedTables, ['OS/2']);
+    });
   });
 
   describe('CFF subsetting', function () {
     let font = fontkit.openSync(new URL('data/SourceSansPro/SourceSansPro-Regular.otf', import.meta.url));
+
+    it('should reject includeTable on CFF subsets', function () {
+      let subset = font.createSubset();
+      assert.throws(() => subset.includeTable('OS/2'), /only supported for TrueType/);
+    });
 
     it('should produce a subset', function () {
       let subset = font.createSubset();

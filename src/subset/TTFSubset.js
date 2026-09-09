@@ -108,23 +108,23 @@ export default class TTFSubset extends Subset {
     //     ]
 
     // TODO: subset prep, cvt, fpgm?
-    return Directory.toBuffer({
-      tables: {
-        head,
-        hhea,
-        loca: this.loca,
-        maxp,
-        'cvt ': this.font['cvt '],
-        prep: this.font.prep,
-        glyf: this.glyf,
-        hmtx: this.hmtx,
-        fpgm: this.font.fpgm
+    // The following is the minimum set of tables.
+    let t =  {
+      head,
+      hhea,
+      loca: this.loca,
+      maxp,
+      'cvt ': this.font['cvt '],
+      prep: this.font.prep,
+      glyf: this.glyf,
+      hmtx: this.hmtx,
+      fpgm: this.font.fpgm,
+    }
 
-        // name: clone @font.name
-        // 'OS/2': clone @font['OS/2']
-        // post: clone @font.post
-        // cmap: cmap
-      }
-    });
+    for (const tag of this.includedTables) {
+      t[tag] = cloneDeep(this.font[tag]);
+    }
+
+    return Directory.toBuffer({tables: t});
   }
 }

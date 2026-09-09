@@ -12,6 +12,10 @@ export default class CFFSubset extends Subset {
     }
   }
 
+  includeTable() {
+    throw new Error('includeTable is only supported for TrueType (glyf) subsets, not CFF.');
+  }
+
   subsetCharstrings() {
     this.charstrings = [];
     let gsubrs = {};
