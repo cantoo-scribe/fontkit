@@ -65,26 +65,23 @@ export default class GSUBProcessor extends OTProcessor {
 
       case 3: { // Alternate Substitution
         let index = this.coverageIndex(table.coverage);
-        if (index !== -1) {
-          let USER_INDEX = 0; // TODO
-          this.glyphIterator.cur.id = table.alternateSet.get(index)[USER_INDEX];
-          return true;
-        }
+        if (index === -1) return false;
 
-        return false;
+        // 1-based index from user features (e.g. { aalt: 2 }); boolean / missing → first
+        let alternates = table.alternateSet.get(index);
+        let alt = this.userFeatures?.[this.currentFeature];
+        let i = Number.isInteger(alt) && alt > 0 ? alt - 1 : 0;
+        this.glyphIterator.cur.id = alternates[i < alternates.length ? i : 0];
+        return true;
       }
 
       case 4: { // Ligature Substitution
         let index = this.coverageIndex(table.coverage);
-        if (index === -1) {
-          return false;
-        }
+        if (index === -1) return false;
 
         for (let ligature of table.ligatureSets.get(index)) {
           let matched = this.sequenceMatchIndices(1, ligature.components);
-          if (!matched) {
-            continue;
-          }
+          if (!matched) continue;
 
           let curGlyph = this.glyphIterator.cur;
 
@@ -192,9 +189,7 @@ export default class GSUBProcessor extends OTProcessor {
 
       case 8: { // Reverse Chaining Contextual Single Substitution
         let index = this.coverageIndex(table.coverage);
-        if (index === -1) {
-          return false;
-        }
+        if (index === -1) return false;
 
         // Backtrack is stored closest-first; coverageSequenceMatches walks furthest-first.
         if (!this.coverageSequenceMatches(-table.backtrackGlyphCount, [...table.backtrackCoverage].reverse())

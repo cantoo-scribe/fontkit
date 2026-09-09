@@ -606,4 +606,27 @@ describe('shaping', function () {
       'Ⲁ̅ⲁ̅',
       '33+633|196@-319,0+0|34+574|199@-291,0+0');
   });
+
+  describe('alternate substitution (GSUB Type 3)', function () {
+    // FiraSans aalt for 'A': [1078 ordfeminine, 764 a.sc]
+    let font = fontkit.openSync(new URL('data/FiraSans/FiraSans-Regular.ttf', import.meta.url));
+
+    it('uses the first alternate for boolean / 1', function () {
+      assert.deepEqual(font.layout('A', { aalt: true }).glyphs.map(g => g.id), [1078]);
+      assert.deepEqual(font.layout('A', { aalt: 1 }).glyphs.map(g => g.id), [1078]);
+    });
+
+    it('uses the Nth alternate for numeric feature values', function () {
+      assert.deepEqual(font.layout('A', { aalt: 2 }).glyphs.map(g => g.id), [764]);
+    });
+
+    it('preserves boolean features alongside numeric alternates', function () {
+      let { glyphs, features } = font.layout('A', { liga: true, aalt: 2 });
+      assert.equal(features.liga, true);
+      assert.equal(features.aalt, 2);
+      assert.deepEqual(glyphs.map(g => g.id), [764]);
+      // boolean liga still shapes normally when no numeric alternate is set
+      assert.equal(font.layout('fi', { liga: true }).glyphs.length, 1);
+    });
+  });
 });

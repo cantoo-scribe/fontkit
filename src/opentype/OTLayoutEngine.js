@@ -43,10 +43,12 @@ export default class OTLayoutEngine {
     this.plan = new ShapingPlan(this.font, script, glyphRun.direction);
     this.shaper.plan(this.plan, this.glyphInfos, glyphRun.features);
 
-    // Assign chosen features to output glyph run
+    // Enabled features as true, then overlay user values (e.g. aalt: 2) without mutating input.
+    let features = {};
     for (let key in this.plan.allFeatures) {
-      glyphRun.features[key] = true;
+      features[key] = true;
     }
+    glyphRun.features = Object.assign(features, glyphRun.features);
   }
 
   substitute(glyphRun) {

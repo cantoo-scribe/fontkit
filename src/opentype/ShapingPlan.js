@@ -15,6 +15,7 @@ export default class ShapingPlan {
     this.stages = [];
     this.globalFeatures = {};
     this.allFeatures = {};
+    this.userFeatures = null; // original user feature values (for Type 3 alternate index)
   }
 
   /**
@@ -74,6 +75,7 @@ export default class ShapingPlan {
     if (Array.isArray(features)) {
       this.add(features);
     } else if (typeof features === 'object') {
+      this.userFeatures = features;
       for (let tag in features) {
         if (features[tag]) {
           this.add(tag);
@@ -102,6 +104,9 @@ export default class ShapingPlan {
    * Executes the planned stages using the given OTProcessor
    */
   process(processor, glyphs, positions) {
+    // Preserve original user values (e.g. { aalt: 2 }) for GSUB Type 3.
+    processor.userFeatures = this.userFeatures;
+
     for (let stage of this.stages) {
       if (typeof stage === 'function') {
         if (!positions) {
