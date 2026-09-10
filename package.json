@@ -1,6 +1,6 @@
 {
   "name": "@cantoo/fontkit",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "An advanced font engine for Node and the browser",
   "keywords": [
     "opentype",
