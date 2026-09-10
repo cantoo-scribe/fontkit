@@ -38,6 +38,7 @@ let MarkGlyphSetsDef = new r.Struct({
   coverage: new r.Array(new r.Pointer(r.uint32, Coverage), 'markSetCount')
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint32, {
   header: {
     glyphClassDef: new r.Pointer(r.uint16, ClassDef),

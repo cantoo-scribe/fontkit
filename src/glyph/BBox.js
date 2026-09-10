@@ -2,6 +2,12 @@
  * Represents a glyph bounding box
  */
 export default class BBox {
+  /**
+   * @param {number} [minX]
+   * @param {number} [minY]
+   * @param {number} [maxX]
+   * @param {number} [maxY]
+   */
   constructor(minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity) {
     /**
      * The minimum X position in the bounding box
@@ -44,6 +50,11 @@ export default class BBox {
     return this.maxY - this.minY;
   }
 
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {void}
+   */
   addPoint(x, y) {
     if (Math.abs(x) !== Infinity) {
       if (x < this.minX) {
@@ -66,6 +77,9 @@ export default class BBox {
     }
   }
 
+  /**
+   * @returns {BBox}
+   */
   copy() {
     return new BBox(this.minX, this.minY, this.maxX, this.maxY);
   }

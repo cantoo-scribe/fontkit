@@ -1,28 +1,73 @@
 import OTProcessor from './OTProcessor';
 import GlyphInfo from './GlyphInfo';
 
+/** @typedef {import('../../types/fontkit').CoverageTable} CoverageTable */
+/** @typedef {import('../../types/fontkit').OTLookup} OTLookup */
+/** @typedef {import('../../types/fontkit').ExtensionSubtable} ExtensionSubtable */
+/** @typedef {import('restructure').StructValue} StructValue */
+
+/**
+ * @typedef {StructValue & {
+ *   coverage?: CoverageTable,
+ *   version?: number,
+ *   deltaGlyphID?: number,
+ *   substitute?: import('../../types/fontkit').LazyList<number>,
+ *   sequences?: import('../../types/fontkit').LazyList<number[]>,
+ *   alternateSet?: import('../../types/fontkit').LazyList<number[]>,
+ *   ligatureSets?: import('../../types/fontkit').LazyList<Array<{ glyph: number, components: number[] }>>,
+ *   lookupType?: number,
+ *   extension?: StructValue,
+ *   backtrackGlyphCount?: number,
+ *   backtrackCoverage?: CoverageTable[],
+ *   lookaheadCoverage?: CoverageTable[],
+ * }} GSUBSubtable
+ */
+
 export default class GSUBProcessor extends OTProcessor {
+  /**
+   * @param {OTLookup} lookup
+   * @returns {number}
+   */
   lookupDirection(lookup) {
-    let type = lookup.lookupType === 7 ? lookup.subTables[0]?.lookupType : lookup.lookupType;
+    let first = lookup.subTables[0];
+    let type = lookup.lookupType === 7
+      ? (first && typeof first === 'object' && 'lookupType' in first
+          ? /** @type {number} */ (/** @type {{ lookupType?: number }} */ (first).lookupType)
+          : undefined)
+      : lookup.lookupType;
     return type === 8 ? -1 : 1;
   }
 
+  /**
+   * @param {number} lookupType
+   * @param {StructValue} table
+   * @returns {boolean}
+   */
   applyLookup(lookupType, table) {
+    let t = /** @type {GSUBSubtable} */ (table);
+    let glyphIterator = this.glyphIterator;
+    if (!glyphIterator) {
+      return false;
+    }
+
     switch (lookupType) {
       case 1: { // Single Substitution
-        let index = this.coverageIndex(table.coverage);
+        if (!t.coverage) return false;
+        let index = this.coverageIndex(t.coverage);
         if (index === -1) {
           return false;
         }
 
-        let glyph = this.glyphIterator.cur;
-        switch (table.version) {
+        let glyph = glyphIterator.cur;
+        if (!glyph) return false;
+
+        switch (t.version) {
           case 1:
-            glyph.id = (glyph.id + table.deltaGlyphID) & 0xffff;
+            glyph.id = (glyph.id + (t.deltaGlyphID ?? 0)) & 0xffff;
             break;
 
           case 2:
-            glyph.id = table.substitute.get(index);
+            if (t.substitute) glyph.id = t.substitute.get(index);
             break;
         }
 
@@ -30,23 +75,26 @@ export default class GSUBProcessor extends OTProcessor {
       }
 
       case 2: { // Multiple Substitution
-        let index = this.coverageIndex(table.coverage);
+        if (!t.coverage || !t.sequences) return false;
+        let index = this.coverageIndex(t.coverage);
         if (index !== -1) {
-          let sequence = table.sequences.get(index);
+          let sequence = t.sequences.get(index);
 
           if (sequence.length === 0) {
             // If the sequence length is zero, delete the glyph.
             // The OpenType spec disallows this, but seems like Harfbuzz and Uniscribe allow it.
-            this.glyphs.splice(this.glyphIterator.index, 1);
+            this.glyphs.splice(glyphIterator.index, 1);
             return true;
           }
 
-          this.glyphIterator.cur.id = sequence[0];
-          this.glyphIterator.cur.ligatureComponent = 0;
+          let curGlyph = glyphIterator.cur;
+          if (!curGlyph) return false;
 
-          let features = this.glyphIterator.cur.features;
-          let curGlyph = this.glyphIterator.cur;
-          let replacement = sequence.slice(1).map((gid, i) => {
+          curGlyph.id = sequence[0];
+          curGlyph.ligatureComponent = 0;
+
+          let features = curGlyph.features;
+          let replacement = sequence.slice(1).map(/** @param {number} gid @param {number} i */ (gid, i) => {
             let glyph = new GlyphInfo(this.font, gid, undefined, features);
             glyph.shaperInfo = curGlyph.shaperInfo;
             glyph.isLigated = curGlyph.isLigated;
@@ -56,7 +104,7 @@ export default class GSUBProcessor extends OTProcessor {
             return glyph;
           });
 
-          this.glyphs.splice(this.glyphIterator.index + 1, 0, ...replacement);
+          this.glyphs.splice(glyphIterator.index + 1, 0, ...replacement);
           return true;
         }
 
@@ -64,31 +112,37 @@ export default class GSUBProcessor extends OTProcessor {
       }
 
       case 3: { // Alternate Substitution
-        let index = this.coverageIndex(table.coverage);
+        if (!t.coverage || !t.alternateSet) return false;
+        let index = this.coverageIndex(t.coverage);
         if (index === -1) return false;
 
         // 1-based index from user features (e.g. { aalt: 2 }); boolean / missing → first
-        let alternates = table.alternateSet.get(index);
-        let alt = this.userFeatures?.[this.currentFeature];
-        let i = Number.isInteger(alt) && alt > 0 ? alt - 1 : 0;
-        this.glyphIterator.cur.id = alternates[i < alternates.length ? i : 0];
+        let alternates = t.alternateSet.get(index);
+        let cur = glyphIterator.cur;
+        if (!cur) return false;
+
+        let alt = this.currentFeature && this.userFeatures ? this.userFeatures[this.currentFeature] : undefined;
+        let i = typeof alt === 'number' && Number.isInteger(alt) && alt > 0 ? alt - 1 : 0;
+        cur.id = alternates[i < alternates.length ? i : 0];
         return true;
       }
 
       case 4: { // Ligature Substitution
-        let index = this.coverageIndex(table.coverage);
+        if (!t.coverage || !t.ligatureSets) return false;
+        let index = this.coverageIndex(t.coverage);
         if (index === -1) return false;
 
-        for (let ligature of table.ligatureSets.get(index)) {
+        for (let ligature of t.ligatureSets.get(index)) {
           let matched = this.sequenceMatchIndices(1, ligature.components);
           if (!matched) continue;
 
-          let curGlyph = this.glyphIterator.cur;
+          let curGlyph = glyphIterator.cur;
+          if (!curGlyph) continue;
 
           // Concatenate all of the characters the new ligature will represent
           let characters = curGlyph.codePoints.slice();
-          for (let index of matched) {
-            characters.push(...this.glyphs[index].codePoints);
+          for (let matchIdx of matched) {
+            characters.push(...this.glyphs[matchIdx].codePoints);
           }
 
           // Create the replacement ligature glyph
@@ -131,7 +185,7 @@ export default class GSUBProcessor extends OTProcessor {
           let lastLigID = curGlyph.ligatureID;
           let lastNumComps = curGlyph.codePoints.length;
           let curComps = lastNumComps;
-          let idx = this.glyphIterator.index + 1;
+          let idx = glyphIterator.index + 1;
 
           // Set ligatureID and ligatureComponent on glyphs that were skipped in the matched sequence.
           // This allows GPOS to attach marks to the correct ligature components.
@@ -171,7 +225,7 @@ export default class GSUBProcessor extends OTProcessor {
             this.glyphs.splice(matched[i], 1);
           }
 
-          this.glyphs[this.glyphIterator.index] = ligatureGlyph;
+          this.glyphs[glyphIterator.index] = ligatureGlyph;
           return true;
         }
 
@@ -184,20 +238,25 @@ export default class GSUBProcessor extends OTProcessor {
       case 6: // Chaining Contextual Substitution
         return this.applyChainingContext(table);
 
-      case 7: // Extension Substitution
-        return this.applyLookup(table.lookupType, table.extension);
+      case 7: { // Extension Substitution
+        let ext = /** @type {ExtensionSubtable} */ (table);
+        return this.applyLookup(ext.lookupType, ext.extension);
+      }
 
       case 8: { // Reverse Chaining Contextual Single Substitution
-        let index = this.coverageIndex(table.coverage);
+        if (!t.coverage || !t.substitute || !t.backtrackCoverage || !t.lookaheadCoverage) return false;
+        let index = this.coverageIndex(t.coverage);
         if (index === -1) return false;
 
         // Backtrack is stored closest-first; coverageSequenceMatches walks furthest-first.
-        if (!this.coverageSequenceMatches(-table.backtrackGlyphCount, [...table.backtrackCoverage].reverse())
-          || !this.coverageSequenceMatches(1, table.lookaheadCoverage)) {
+        if (!this.coverageSequenceMatches(-(t.backtrackGlyphCount ?? t.backtrackCoverage.length), [...t.backtrackCoverage].reverse())
+          || !this.coverageSequenceMatches(1, t.lookaheadCoverage)) {
           return false;
         }
 
-        this.glyphIterator.cur.id = table.substitute.get(index);
+        let cur = glyphIterator.cur;
+        if (!cur) return false;
+        cur.id = t.substitute.get(index);
         return true;
       }
 

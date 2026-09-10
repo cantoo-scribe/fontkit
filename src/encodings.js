@@ -1,6 +1,10 @@
 /**
  * Gets an encoding name from platform, encoding, and language ids.
  * Returned encoding names can be used in iconv-lite to decode text.
+ * @param {number} platformID
+ * @param {number} encodingID
+ * @param {number} [languageID]
+ * @returns {string | null | undefined}
  */
 export function getEncoding(platformID, encodingID, languageID = 0) {
   if (platformID === 1 && MAC_LANGUAGE_ENCODINGS[languageID]) {
@@ -10,7 +14,10 @@ export function getEncoding(platformID, encodingID, languageID = 0) {
   return ENCODINGS[platformID][encodingID];
 }
 
+/** @type {Set<string>} */
 const SINGLE_BYTE_ENCODINGS = new Set(['x-mac-roman', 'x-mac-cyrillic', 'iso-8859-6', 'iso-8859-8']);
+
+/** @type {Record<string, string>} */
 const MAC_ENCODINGS = {
   'x-mac-croatian': 'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®Š™´¨≠ŽØ∞±≤≥∆µ∂∑∏š∫ªºΩžø¿¡¬√ƒ≈Ć«Č… ÀÃÕŒœĐ—“”‘’÷◊©⁄€‹›Æ»–·‚„‰ÂćÁčÈÍÎÏÌÓÔđÒÚÛÙıˆ˜¯πË˚¸Êæˇ',
   'x-mac-gaelic': 'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØḂ±≤≥ḃĊċḊḋḞḟĠġṀæøṁṖṗɼƒſṠ«»… ÀÃÕŒœ–—“”‘’ṡẛÿŸṪ€‹›Ŷŷṫ·Ỳỳ⁊ÂÊÁËÈÍÎÏÌÓÔ♣ÒÚÛÙıÝýŴŵẄẅẀẁẂẃ',
@@ -22,8 +29,13 @@ const MAC_ENCODINGS = {
   'x-mac-turkish': 'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸĞğİıŞş‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙˆ˜¯˘˙˚¸˝˛ˇ'
 };
 
+/** @type {Map<string, Map<number, number>>} */
 const encodingCache = new Map();
 
+/**
+ * @param {string} encoding
+ * @returns {Map<number, number> | undefined}
+ */
 export function getEncodingMapping(encoding) {
   let cached = encodingCache.get(encoding);
   if (cached) {
@@ -47,13 +59,13 @@ export function getEncodingMapping(encoding) {
     // TextEncoder only supports utf8, whereas TextDecoder supports legacy encodings.
     // Use this to create a mapping of code points.
     let decoder = new TextDecoder(encoding);
-    let mapping = new Uint8Array(0x80);
+    let bytes = new Uint8Array(0x80);
     for (let i = 0; i < 0x80; i++) {
-      mapping[i] = 0x80 + i;
+      bytes[i] = 0x80 + i;
     }
 
     let res = new Map();
-    let s = decoder.decode(mapping);
+    let s = decoder.decode(bytes);
     for (let i = 0; i < 0x80; i++) {
       res.set(s.charCodeAt(i), 0x80 + i);
     }
@@ -61,9 +73,12 @@ export function getEncodingMapping(encoding) {
     encodingCache.set(encoding, res);
     return res;
   }
+
+  return undefined;
 }
 
 // Map of platform ids to encoding ids.
+/** @type {(string | null)[][]} */
 export const ENCODINGS = [
   // unicode
   ['utf-16be', 'utf-16be', 'utf-16be', 'utf-16be', 'utf-16be', 'utf-16be', 'utf-16be'],
@@ -103,6 +118,7 @@ export const ENCODINGS = [
 
 // Overrides for Mac scripts by language id.
 // See http://unicode.org/Public/MAPPINGS/VENDORS/APPLE/Readme.txt
+/** @type {Record<number, string>} */
 export const MAC_LANGUAGE_ENCODINGS = {
   15: 'x-mac-icelandic',
   17: 'x-mac-turkish',
@@ -122,9 +138,10 @@ export const MAC_LANGUAGE_ENCODINGS = {
 };
 
 // Map of platform ids to BCP-47 language codes.
+/** @type {Array<Record<number, string>>} */
 export const LANGUAGES = [
   // unicode
-  [],
+  {},
 
   { // macintosh
     0: 'en', 30: 'fo', 60: 'ks', 90: 'rw',
@@ -160,7 +177,7 @@ export const LANGUAGES = [
   },
 
   // ISO (deprecated)
-  [],
+  {},
 
   { // windows
     0x0436: 'af', 0x4009: 'en-IN', 0x0487: 'rw', 0x0432: 'tn',

@@ -23,6 +23,7 @@ let VdmxGroup = new r.Struct({
   entries: new r.Array(vTable, 'recs') // The VDMX records
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16, // Version number (0 or 1)
   numRecs: r.uint16, // Number of VDMX groups present

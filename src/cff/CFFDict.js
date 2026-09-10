@@ -2,9 +2,32 @@ import isEqual from 'fast-deep-equal';
 import CFFOperand from './CFFOperand';
 import { PropertyDescriptor } from 'restructure';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').EncodeStream} EncodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('../../types/fontkit').CFFDictField} CFFDictField */
+/** @typedef {import('../../types/fontkit').CFFOperandType} CFFOperandType */
+/** @typedef {import('../../types/fontkit').CFFEncodeContext} CFFEncodeContext */
+
+/** @typedef {number | { forceLarge?: boolean, valueOf(): number }} CFFOperandValue */
+
+/**
+ * @param {CFFOperandType} type
+ * @returns {type is BaseType}
+ */
+function isCodec(type) {
+  return typeof type === 'object' && type != null && !Array.isArray(type);
+}
+
 export default class CFFDict {
+  /**
+   * @param {CFFDictField[]} [ops]
+   */
   constructor(ops = []) {
+    /** @type {CFFDictField[]} */
     this.ops = ops;
+    /** @type {Record<number, CFFDictField>} */
     this.fields = {};
     for (let field of ops) {
       let key = Array.isArray(field[0]) ? field[0][0] << 8 | field[0][1] : field[0];
@@ -12,10 +35,17 @@ export default class CFFDict {
     }
   }
 
+  /**
+   * @param {CFFOperandType} type
+   * @param {DecodeStream} stream
+   * @param {StructValue} ret
+   * @param {unknown[]} operands
+   * @returns {unknown}
+   */
   decodeOperands(type, stream, ret, operands) {
     if (Array.isArray(type)) {
       return operands.map((op, i) => this.decodeOperands(type[i], stream, ret, [op]));
-    } else if (type.decode != null) {
+    } else if (isCodec(type) && type.decode != null) {
       return type.decode(stream, ret, operands);
     } else {
       switch (type) {
@@ -31,11 +61,26 @@ export default class CFFDict {
     }
   }
 
+  /**
+   * @param {CFFOperandType} type
+   * @param {EncodeStream | null} stream
+   * @param {CFFEncodeContext | StructValue} ctx
+   * @param {unknown} operands
+   * @returns {unknown[]}
+   */
   encodeOperands(type, stream, ctx, operands) {
     if (Array.isArray(type)) {
+      if (!Array.isArray(operands)) {
+        return [operands];
+      }
       return operands.map((op, i) => this.encodeOperands(type[i], stream, ctx, op)[0]);
-    } else if (type.encode != null) {
-      return type.encode(stream, operands, ctx);
+    } else if (isCodec(type) && type.encode != null) {
+      let encoded = type.encode(stream, operands, ctx);
+      if (Array.isArray(encoded)) {
+        return encoded;
+      }
+      // Custom ops must return an operand list; coerce scalars (e.g. sid index).
+      return [encoded];
     } else if (typeof operands === 'number') {
       return [operands];
     } else if (typeof operands === 'boolean') {
@@ -47,9 +92,17 @@ export default class CFFDict {
     }
   }
 
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue} parent
+   * @returns {StructValue}
+   */
   decode(stream, parent) {
-    let end = stream.pos + parent.length;
+    let dictLength = typeof parent.length === 'number' ? parent.length : 0;
+    let end = stream.pos + dictLength;
+    /** @type {StructValue} */
     let ret = {};
+    /** @type {unknown[]} */
     let operands = [];
 
     // define hidden properties
@@ -94,12 +147,20 @@ export default class CFFDict {
     return ret;
   }
 
+  /**
+   * @param {StructValue} dict
+   * @param {StructValue | CFFEncodeContext} parent
+   * @param {boolean} [includePointers]
+   * @returns {number}
+   */
   size(dict, parent, includePointers = true) {
+    /** @type {CFFEncodeContext} */
     let ctx = {
       parent,
       val: dict,
       pointerSize: 0,
-      startOffset: parent.startOffset || 0
+      startOffset: (typeof parent.startOffset === 'number' ? parent.startOffset : 0),
+      pointers: []
     };
 
     let len = 0;
@@ -113,7 +174,7 @@ export default class CFFDict {
 
       let operands = this.encodeOperands(field[2], null, ctx, val);
       for (let op of operands) {
-        len += CFFOperand.size(op);
+        len += CFFOperand.size(/** @type {CFFOperandValue} */ (op));
       }
 
       let key = Array.isArray(field[0]) ? field[0] : [field[0]];
@@ -127,11 +188,18 @@ export default class CFFDict {
     return len;
   }
 
+  /**
+   * @param {EncodeStream} stream
+   * @param {StructValue} dict
+   * @param {StructValue | null | undefined} parent
+   * @returns {void}
+   */
   encode(stream, dict, parent) {
+    /** @type {CFFEncodeContext} */
     let ctx = {
       pointers: [],
       startOffset: stream.pos,
-      parent,
+      parent: parent ?? undefined,
       val: dict,
       pointerSize: 0
     };
@@ -146,7 +214,7 @@ export default class CFFDict {
 
       let operands = this.encodeOperands(field[2], stream, ctx, val);
       for (let op of operands) {
-        CFFOperand.encode(stream, op);
+        CFFOperand.encode(stream, /** @type {CFFOperandValue} */ (op));
       }
 
       let key = Array.isArray(field[0]) ? field[0] : [field[0]];
@@ -158,7 +226,9 @@ export default class CFFDict {
     let i = 0;
     while (i < ctx.pointers.length) {
       let ptr = ctx.pointers[i++];
-      ptr.type.encode(stream, ptr.val, ptr.parent);
+      if (ptr.type.encode) {
+        ptr.type.encode(stream, ptr.val, ptr.parent);
+      }
     }
 
     return;

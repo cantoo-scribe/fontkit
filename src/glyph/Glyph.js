@@ -3,6 +3,12 @@ import Path from './Path';
 import { isMark } from '../packages/unicode-properties/index.js';
 import StandardNames from './StandardNames';
 
+/** @typedef {import('../../types/fontkit').FontLike} FontLike */
+/** @typedef {import('../../types/fontkit').GlyphMetrics} GlyphMetrics */
+/** @typedef {import('../../types/fontkit').MetricsTable} MetricsTable */
+/** @typedef {import('../../types/fontkit').PathRenderingContext} PathRenderingContext */
+/** @typedef {import('./BBox').default} BBox */
+
 /**
  * Glyph objects represent a glyph in the font. They have various properties for accessing metrics and
  * the actual vector path the glyph represents, and methods for rendering the glyph to a graphics context.
@@ -12,6 +18,11 @@ import StandardNames from './StandardNames';
  * on the font format, but they all inherit from this class.
  */
 export default class Glyph {
+  /**
+   * @param {number} id
+   * @param {number[]} codePoints
+   * @param {FontLike} font
+   */
   constructor(id, codePoints, font) {
     /**
      * The glyph id in the font
@@ -26,28 +37,50 @@ export default class Glyph {
      * @type {number[]}
      */
     this.codePoints = codePoints;
+
+    /** @type {FontLike} */
     this._font = font;
+
+    /** @type {GlyphMetrics | undefined} */
+    this._metrics = undefined;
 
     // TODO: get this info from GDEF if available
     this.isMark = this.codePoints.length > 0 && this.codePoints.every(isMark);
     this.isLigature = this.codePoints.length > 1;
   }
 
+  /**
+   * @returns {Path}
+   */
   _getPath() {
     return new Path();
   }
 
+  /**
+   * @returns {BBox}
+   */
   _getCBox() {
     return this.path.cbox;
   }
 
+  /**
+   * @returns {BBox}
+   */
   _getBBox() {
     return this.path.bbox;
   }
 
+  /**
+   * @param {MetricsTable} table
+   * @returns {{ advance: number, bearing: number }}
+   */
   _getTableMetrics(table) {
     if (this.id < table.metrics.length) {
-      return table.metrics.get(this.id);
+      let metric = table.metrics.get(this.id);
+      return {
+        advance: metric ? metric.advance : 0,
+        bearing: metric ? metric.bearing : 0
+      };
     }
 
     let metric = table.metrics.get(table.metrics.length - 1);
@@ -59,6 +92,10 @@ export default class Glyph {
     return res;
   }
 
+  /**
+   * @param {BBox} [cbox]
+   * @returns {GlyphMetrics}
+   */
   _getMetrics(cbox) {
     if (this._metrics) { return this._metrics; }
     if (cbox == null) { ({ cbox } = this); }
@@ -210,10 +247,16 @@ export default class Glyph {
     return this._getMetrics().bottomBearing;
   }
 
+  /**
+   * @returns {null}
+   */
   get ligatureCaretPositions() {
     return null;
   }
 
+  /**
+   * @returns {string | null | undefined}
+   */
   _getName() {
     let { post } = this._font;
     if (!post) {
@@ -225,25 +268,40 @@ export default class Glyph {
         return StandardNames[this.id];
 
       case 2: {
-        let id = post.glyphNameIndex[this.id];
+        let id = post.glyphNameIndex?.[this.id];
+        if (id == null) {
+          return null;
+        }
         if (id < StandardNames.length) {
           return StandardNames[id];
         }
 
-        return post.names[id - StandardNames.length];
+        return post.names?.[id - StandardNames.length];
       }
 
-      case 2.5:
-        return StandardNames[this.id + post.offsets[this.id]];
+      case 2.5: {
+        let offset = post.offsets?.[this.id];
+        if (offset == null) {
+          return null;
+        }
+        return StandardNames[this.id + offset];
+      }
 
-      case 4:
-        return String.fromCharCode(post.map[this.id]);
+      case 4: {
+        let mapped = post.map?.[this.id];
+        if (mapped == null) {
+          return null;
+        }
+        return String.fromCharCode(mapped);
+      }
     }
+
+    return null;
   }
 
   /**
    * The glyph's name
-   * @type {string}
+   * @type {string | null | undefined}
    */
   @cache
   get name() {
@@ -252,8 +310,9 @@ export default class Glyph {
 
   /**
    * Renders the glyph to the given graphics context, at the specified font size.
-   * @param {CanvasRenderingContext2d} ctx
+   * @param {PathRenderingContext} ctx
    * @param {number} size
+   * @returns {void}
    */
   render(ctx, size) {
     ctx.save();

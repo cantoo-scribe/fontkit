@@ -1,15 +1,27 @@
 import { cache } from '../decorators';
 import { range } from '../utils';
 
+/** @typedef {import('../../types/fontkit').AATLookupTableData} AATLookupTableData */
+/** @typedef {import('../../types/fontkit').AATUnboundedArray<number>} AATNumberArray */
+/** @typedef {import('../../types/fontkit').AATLookupSegmentSingle} AATLookupSegmentSingle */
+
 export default class AATLookupTable {
+  /**
+   * @param {AATLookupTableData} table
+   */
   constructor(table) {
+    /** @type {AATLookupTableData} */
     this.table = table;
   }
 
+  /**
+   * @param {number} glyph
+   * @returns {number | null | undefined}
+   */
   lookup(glyph) {
     switch (this.table.version) {
       case 0: // simple array format
-        return this.table.values.getItem(glyph);
+        return /** @type {AATNumberArray} */ (this.table.values).getItem(glyph);
 
       case 2: // segment format
       case 4: {
@@ -67,15 +79,20 @@ export default class AATLookupTable {
       }
 
       case 8: // lookup trimmed
-        return this.table.values[glyph - this.table.firstGlyph];
+        return /** @type {number[]} */ (this.table.values)[glyph - this.table.firstGlyph];
 
       default:
         throw new Error(`Unknown lookup table format: ${this.table.version}`);
     }
   }
 
+  /**
+   * @param {number} classValue
+   * @returns {number[]}
+   */
   @cache
   glyphsForValue(classValue) {
+    /** @type {number[]} */
     let res = [];
 
     switch (this.table.version) {
@@ -107,8 +124,9 @@ export default class AATLookupTable {
       }
 
       case 8: { // lookup trimmed
-        for (let i = 0; i < this.table.values.length; i++) {
-          if (this.table.values[i] === classValue) {
+        let values = /** @type {number[]} */ (this.table.values);
+        for (let i = 0; i < values.length; i++) {
+          if (values[i] === classValue) {
             res.push(this.table.firstGlyph + i);
           }
         }

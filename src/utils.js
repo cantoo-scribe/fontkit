@@ -1,3 +1,9 @@
+/**
+ * @template T
+ * @param {T[]} arr
+ * @param {(item: T) => number} cmp
+ * @returns {number}
+ */
 export function binarySearch(arr, cmp) {
   let min = 0;
   let max = arr.length - 1;
@@ -17,6 +23,11 @@ export function binarySearch(arr, cmp) {
   return -1;
 }
 
+/**
+ * @param {number} index
+ * @param {number} end
+ * @returns {number[]}
+ */
 export function range(index, end) {
   let range = [];
   while (index < end) {
@@ -34,6 +45,10 @@ for (let i = 0; i < CHARS.length; i++) {
   LOOKUP[CHARS.charCodeAt(i)] = i;
 }
 
+/**
+ * @param {string} base64
+ * @returns {Uint8Array}
+ */
 export function decodeBase64(base64) {
   let bufferLength = base64.length * 0.75;
 

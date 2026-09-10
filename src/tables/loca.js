@@ -1,5 +1,16 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
+/**
+ * @typedef {StructValue & {
+ *   version: number,
+ *   offsets: number[],
+ *   _processed?: boolean
+ * }} LocaValue
+ */
+
+/** @type {import('restructure').VersionedStruct} */
 let loca = new r.VersionedStruct('head.indexToLocFormat', {
   0: {
     offsets: new r.Array(r.uint16)
@@ -10,20 +21,22 @@ let loca = new r.VersionedStruct('head.indexToLocFormat', {
 });
 
 loca.process = function () {
-  if (this.version === 0 && !this._processed) {
-    for (let i = 0; i < this.offsets.length; i++) {
-      this.offsets[i] <<= 1;
+  let self = /** @type {LocaValue} */ (this);
+  if (self.version === 0 && !self._processed) {
+    for (let i = 0; i < self.offsets.length; i++) {
+      self.offsets[i] <<= 1;
     }
-    this._processed = true;
+    self._processed = true;
   }
 };
 
 loca.preEncode = function () {
-  if (this.version === 0 && this._processed !== false) {
-    for (let i = 0; i < this.offsets.length; i++) {
-      this.offsets[i] >>>= 1;
+  let self = /** @type {LocaValue} */ (this);
+  if (self.version === 0 && self._processed !== false) {
+    for (let i = 0; i < self.offsets.length; i++) {
+      self.offsets[i] >>>= 1;
     }
-    this._processed = false;
+    self._processed = false;
   }
 };
 

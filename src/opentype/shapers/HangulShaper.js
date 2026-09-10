@@ -1,6 +1,12 @@
 import DefaultShaper from './DefaultShaper';
 import GlyphInfo from '../GlyphInfo';
 
+/** @typedef {import('../../../types/fontkit').ShapingPlanLike} ShapingPlanLike */
+/** @typedef {import('../../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+/** @typedef {import('../../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../../types/fontkit').FeatureMap} FeatureMap */
+/** @typedef {import('../../../types/fontkit').FeatureInput} FeatureInput */
+
 /**
  * This is a shaper for the Hangul script, used by the Korean language.
  * It does the following:
@@ -25,10 +31,18 @@ import GlyphInfo from '../GlyphInfo';
  */
 export default class HangulShaper extends DefaultShaper {
   static zeroMarkWidths = 'NONE';
+
+  /**
+   * @param {ShapingPlanLike} plan
+   */
   static planFeatures(plan) {
     plan.add(['ljmo', 'vjmo', 'tjmo'], false);
   }
 
+  /**
+   * @param {ShapingPlanLike} plan
+   * @param {GlyphInfoLike[]} glyphs
+   */
   static assignFeatures(plan, glyphs) {
     let state = 0;
     let i = 0;
@@ -83,15 +97,24 @@ const V_END = V_BASE + V_COUNT - 1;
 const T_END = T_BASE + T_COUNT - 1;
 const DOTTED_CIRCLE = 0x25cc;
 
+/** @param {number} code @returns {boolean} */
 const isL = code => 0x1100 <= code && code <= 0x115f || 0xa960 <= code && code <= 0xa97c;
+/** @param {number} code @returns {boolean} */
 const isV = code => 0x1160 <= code && code <= 0x11a7 || 0xd7b0 <= code && code <= 0xd7c6;
+/** @param {number} code @returns {boolean} */
 const isT = code => 0x11a8 <= code && code <= 0x11ff || 0xd7cb <= code && code <= 0xd7fb;
+/** @param {number} code @returns {boolean} */
 const isTone = code => 0x302e <= code && code <= 0x302f;
+/** @param {number} code @returns {boolean} */
 const isLVT = code => HANGUL_BASE <= code && code <= HANGUL_END;
+/** @param {number} code @returns {boolean} */
 const isLV = code => (code - HANGUL_BASE) < HANGUL_COUNT && (code - HANGUL_BASE) % T_COUNT === 0;
+/** @param {number} code @returns {boolean} */
 const isCombiningL = code => L_BASE <= code && code <= L_END;
+/** @param {number} code @returns {boolean} */
 const isCombiningV = code => V_BASE <= code && code <= V_END;
-const isCombiningT = code => T_BASE + 1 && 1 <= code && code <= T_END;
+/** @param {number} code @returns {boolean} */
+const isCombiningT = code => T_BASE + 1 <= code && code <= T_END;
 
 // Character categories
 const X = 0; // Other character
@@ -102,7 +125,11 @@ const LV = 4; // Composed <LV> syllable
 const LVT = 5; // Composed <LVT> syllable
 const M = 6; // Tone mark
 
-// This function classifies a character using the above categories.
+/**
+ * This function classifies a character using the above categories.
+ * @param {number} code
+ * @returns {number}
+ */
 function getType(code) {
   if (isL(code)) { return L; }
   if (isV(code)) { return V; }
@@ -120,8 +147,11 @@ const COMPOSE = 2;
 const TONE_MARK = 4;
 const INVALID = 5;
 
+/** @typedef {[number, number]} HangulTransition */
+
 // Build a state machine that accepts valid syllables, and applies actions along the way.
 // The logic this is implementing is documented at the top of the file.
+/** @type {HangulTransition[][]} */
 const STATE_TABLE = [
   //       X                 L                 V                T                  LV                LVT               M
   // State 0: start state
@@ -137,10 +167,24 @@ const STATE_TABLE = [
   [[NO_ACTION, 0], [NO_ACTION, 1], [NO_ACTION, 0], [NO_ACTION, 0], [DECOMPOSE, 2], [DECOMPOSE, 3], [TONE_MARK, 0]]
 ];
 
+/**
+ * @param {LayoutFont} font
+ * @param {number} code
+ * @param {FeatureMap | FeatureInput | null | undefined} features
+ * @returns {GlyphInfo}
+ */
 function getGlyph(font, code, features) {
-  return new GlyphInfo(font, font.glyphForCodePoint(code).id, [code], features);
+  let g = font.glyphForCodePoint(code);
+  // Callers typically check hasGlyphForCodePoint first; .notdef if somehow missing.
+  return new GlyphInfo(font, g ? g.id : 0, [code], features);
 }
 
+/**
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {number} i
+ * @param {LayoutFont} font
+ * @returns {number}
+ */
 function decompose(glyphs, i, font) {
   let glyph = glyphs[i];
   let code = glyph.codePoints[0];
@@ -178,6 +222,12 @@ function decompose(glyphs, i, font) {
   return i + insert.length - 1;
 }
 
+/**
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {number} i
+ * @param {LayoutFont} font
+ * @returns {number}
+ */
 function compose(glyphs, i, font) {
   let glyph = glyphs[i];
   let code = glyphs[i].codePoints[0];
@@ -187,7 +237,14 @@ function compose(glyphs, i, font) {
   let prevType = getType(prev);
 
   // Figure out what type of syllable we're dealing with
-  let lv, ljmo, vjmo, tjmo;
+  /** @type {number | undefined} */
+  let lv;
+  /** @type {GlyphInfoLike | undefined} */
+  let ljmo;
+  /** @type {GlyphInfoLike | undefined} */
+  let vjmo;
+  /** @type {GlyphInfoLike | undefined} */
+  let tjmo;
   if (prevType === LV && type === T) {
     // <LV,T>
     lv = prev;
@@ -242,6 +299,12 @@ function compose(glyphs, i, font) {
   return i;
 }
 
+/**
+ * Length of the Hangul syllable ending at `code` (for tone-mark reordering).
+ * Tone marks only attach to LV/LVT/V/T clusters from the state machine.
+ * @param {number} code
+ * @returns {number}
+ */
 function getLength(code) {
   switch (getType(code)) {
     case LV:
@@ -251,23 +314,37 @@ function getLength(code) {
       return 2;
     case T:
       return 3;
+    default:
+      return 1;
   }
 }
 
+/**
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {number} i
+ * @param {LayoutFont} font
+ */
 function reorderToneMark(glyphs, i, font) {
   let glyph = glyphs[i];
   let code = glyphs[i].codePoints[0];
 
   // Move tone mark to the beginning of the previous syllable, unless it is zero width
-  if (font.glyphForCodePoint(code).advanceWidth === 0) { return; }
+  let toneGlyph = font.glyphForCodePoint(code);
+  if (!toneGlyph || toneGlyph.advanceWidth === 0) { return; }
 
   let prev = glyphs[i - 1].codePoints[0];
   let len = getLength(prev);
 
   glyphs.splice(i, 1);
-  return glyphs.splice(i - len, 0, glyph);
+  glyphs.splice(i - len, 0, glyph);
 }
 
+/**
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {number} i
+ * @param {LayoutFont} font
+ * @returns {number}
+ */
 function insertDottedCircle(glyphs, i, font) {
   let glyph = glyphs[i];
   let code = glyphs[i].codePoints[0];
@@ -276,7 +353,8 @@ function insertDottedCircle(glyphs, i, font) {
     let dottedCircle = getGlyph(font, DOTTED_CIRCLE, glyph.features);
 
     // If the tone mark is zero width, insert the dotted circle before, otherwise after
-    let idx = font.glyphForCodePoint(code).advanceWidth === 0 ? i : i + 1;
+    let toneGlyph = font.glyphForCodePoint(code);
+    let idx = (!toneGlyph || toneGlyph.advanceWidth === 0) ? i : i + 1;
     glyphs.splice(idx, 0, dottedCircle);
     i++;
   }

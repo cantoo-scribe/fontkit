@@ -2,12 +2,23 @@ import { getCombiningClass } from '../../packages/unicode-properties/index.js';
 import DefaultShaper from './DefaultShaper';
 import GlyphInfo from '../GlyphInfo';
 
+/** @typedef {import('../../../types/fontkit').ShapingPlanLike} ShapingPlanLike */
+/** @typedef {import('../../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+/** @typedef {import('../../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../../types/fontkit').OTScriptRecord} OTScriptRecord */
+/** @typedef {import('../../../types/fontkit').OTLangSys} OTLangSys */
+/** @typedef {import('../../../types/fontkit').OTLangSysRecord} OTLangSysRecord */
+
 /**
  * Hebrew shaper (HarfBuzz hb-ot-shaper-hebrew.cc):
  *   - Compose presentation forms (FBxx) when the font lacks GPOS mark for `hebr`
  *   - Reorder patah/qamats + sheva/hiriq + meteg/below so meteg sits next to the base
  */
 export default class HebrewShaper extends DefaultShaper {
+  /**
+   * @param {ShapingPlanLike} plan
+   * @param {GlyphInfoLike[]} glyphs
+   */
   static assignFeatures(plan, glyphs) {
     super.assignFeatures(plan, glyphs);
 
@@ -26,7 +37,12 @@ const DAGESH_FORMS = [
   0xFB48, 0xFB49, 0xFB4A
 ];
 
-// Precomposed Hebrew presentation form for `a + b`, or null (HB compose_hebrew).
+/**
+ * Precomposed Hebrew presentation form for `a + b`, or null (HB compose_hebrew).
+ * @param {number} a
+ * @param {number} b
+ * @returns {number | null}
+ */
 function composeHebrewPair(a, b) {
   switch (b) {
     case 0x05B4: // HIRIQ
@@ -53,8 +69,12 @@ function composeHebrewPair(a, b) {
   }
 }
 
-// Greedily compose adjacent pairs when the font has the glyph
-// (e.g. SHIN + SHIN_DOT → FB2A, then + DAGESH → FB2C).
+/**
+ * Greedily compose adjacent pairs when the font has the glyph
+ * (e.g. SHIN + SHIN_DOT → FB2A, then + DAGESH → FB2C).
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {LayoutFont} font
+ */
 function composeHebrew(glyphs, font) {
   for (let i = 0; i + 1 < glyphs.length;) {
     let composed = glyphs[i].codePoints[0];
@@ -66,17 +86,26 @@ function composeHebrew(glyphs, font) {
       consumed++;
     }
     if (consumed > 1) {
+      let composedGlyph = font.glyphForCodePoint(composed);
+      if (!composedGlyph) {
+        i++;
+        continue;
+      }
+      /** @type {number[]} */
       let cps = [];
       for (let j = 0; j < consumed; j++) cps.push(...glyphs[i + j].codePoints);
-      glyphs[i] = new GlyphInfo(font, font.glyphForCodePoint(composed).id, cps, glyphs[i].features);
+      glyphs[i] = new GlyphInfo(font, composedGlyph.id, cps, glyphs[i].features);
       glyphs.splice(i + 1, consumed - 1);
     }
     i++;
   }
 }
 
-// HB reorder_marks_hebrew: [patah/qamats, sheva/hiriq, meteg/below] → swap last two.
-// unicode-properties already exposes Hebrew modified CCCs (CCC10/14/17/18/22).
+/**
+ * HB reorder_marks_hebrew: [patah/qamats, sheva/hiriq, meteg/below] → swap last two.
+ * unicode-properties already exposes Hebrew modified CCCs (CCC10/14/17/18/22).
+ * @param {GlyphInfoLike[]} glyphs
+ */
 function reorderMarksHebrew(glyphs) {
   for (let i = 2; i < glyphs.length; i++) {
     let c0 = getCombiningClass(glyphs[i - 2].codePoints[0]);
@@ -93,13 +122,18 @@ function reorderMarksHebrew(glyphs) {
   }
 }
 
-// Gate fallback composition on Hebrew-script GPOS `mark` (not the global featureList).
+/**
+ * Gate fallback composition on Hebrew-script GPOS `mark` (not the global featureList).
+ * @param {LayoutFont} font
+ * @returns {boolean}
+ */
 function hasGposMark(font) {
-  let hebr = font.GPOS?.scriptList?.find(e => e.tag === 'hebr')?.script;
+  let hebr = font.GPOS?.scriptList?.find(/** @param {OTScriptRecord} e */ e => e.tag === 'hebr')?.script;
   if (!hebr) return false;
 
-  let langs = [hebr.defaultLangSys, ...(hebr.langSysRecords || []).map(l => l.langSys)].filter(Boolean);
-  return langs.some(ls =>
-    (ls.featureIndexes || []).some(i => font.GPOS.featureList[i]?.tag === 'mark')
+  let langs = [hebr.defaultLangSys, ...(hebr.langSysRecords || []).map(/** @param {OTLangSysRecord} l */ l => l.langSys)]
+    .filter(/** @returns {value is OTLangSys} */ (/** @type {OTLangSys | null} */ value) => value != null);
+  return langs.some(/** @param {OTLangSys} ls */ ls =>
+    (ls.featureIndexes || []).some(/** @param {number} i */ i => font.GPOS?.featureList[i]?.tag === 'mark')
   );
 }

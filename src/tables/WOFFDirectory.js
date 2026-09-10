@@ -1,5 +1,14 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('../../types/fontkit').TableEntry} TableEntry */
+
+/**
+ * @typedef {StructValue & {
+ *   tables: TableEntry[] | Record<string, TableEntry>
+ * }} WOFFDirectoryValue
+ */
+
 let WOFFDirectoryEntry = new r.Struct({
   tag: new r.String(4),
   offset: new r.Pointer(r.uint32, 'void', { type: 'global' }),
@@ -8,6 +17,7 @@ let WOFFDirectoryEntry = new r.Struct({
   origChecksum: r.uint32
 });
 
+/** @type {import('restructure').Struct} */
 let WOFFDirectory = new r.Struct({
   tag: new r.String(4), // should be 'wOFF'
   flavor: r.uint32,
@@ -26,12 +36,14 @@ let WOFFDirectory = new r.Struct({
 });
 
 WOFFDirectory.process = function () {
+  let self = /** @type {WOFFDirectoryValue} */ (this);
+  /** @type {Record<string, TableEntry>} */
   let tables = {};
-  for (let table of this.tables) {
+  for (let table of /** @type {TableEntry[]} */ (self.tables)) {
     tables[table.tag] = table;
   }
 
-  this.tables = tables;
+  self.tables = tables;
 };
 
 export default WOFFDirectory;

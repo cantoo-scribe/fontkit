@@ -2,6 +2,7 @@ import * as r from 'restructure';
 
 // PCL 5 Table
 // NOTE: The PCLT table is strongly discouraged for OpenType fonts with TrueType outlines
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16,
   fontNumber: r.uint32,

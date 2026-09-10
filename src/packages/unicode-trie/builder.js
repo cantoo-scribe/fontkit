@@ -139,6 +139,13 @@ const INDEX_2_START_OFFSET = INDEX_2_NULL_OFFSET + INDEX_2_BLOCK_LENGTH;
 // (0x110000>>SHIFT_2)+UTF8_2B_INDEX_2_LENGTH+MAX_INDEX_1_LENGTH.)
 const MAX_INDEX_LENGTH = 0xffff;
 
+/**
+ * @param {ArrayLike<number>} a
+ * @param {number} s
+ * @param {number} t
+ * @param {number} length
+ * @returns {boolean}
+ */
 const equal_int = (a, s, t, length) => {
   for (let i = 0; i < length; i++) {
     if (a[s + i] !== a[t + i]) {
@@ -150,24 +157,37 @@ const equal_int = (a, s, t, length) => {
 };
 
 class UnicodeTrieBuilder {
+  /**
+   * @param {number} [initialValue=0]
+   * @param {number} [errorValue=0]
+   */
   constructor(initialValue, errorValue) {
     let i, j;
     if (initialValue == null) {
       initialValue = 0;
     }
+    /** @type {number} */
     this.initialValue = initialValue;
     if (errorValue == null) {
       errorValue = 0;
     }
+    /** @type {number} */
     this.errorValue = errorValue;
+    /** @type {Int32Array} */
     this.index1 = new Int32Array(INDEX_1_LENGTH);
+    /** @type {Int32Array} */
     this.index2 = new Int32Array(MAX_INDEX_2_LENGTH);
+    /** @type {number} */
     this.highStart = 0x110000;
 
+    /** @type {Uint32Array} */
     this.data = new Uint32Array(INITIAL_DATA_LENGTH);
+    /** @type {number} */
     this.dataCapacity = INITIAL_DATA_LENGTH;
 
+    /** @type {number} */
     this.firstFreeBlock = 0;
+    /** @type {boolean} */
     this.isCompacted = false;
 
     // Multi-purpose per-data-block table.
@@ -183,6 +203,7 @@ class UnicodeTrieBuilder {
     //
     // Map of adjusted indexes, used in compactData() and compactIndex2().
     // Maps from original indexes to new ones.
+    /** @type {Int32Array} */
     this.map = new Int32Array(MAX_DATA_LENGTH_BUILDTIME >> SHIFT_2);
 
     for (i = 0; i < 0x80; i++) {
@@ -197,7 +218,9 @@ class UnicodeTrieBuilder {
       this.data[i] = this.initialValue;
     }
 
+    /** @type {number} */
     this.dataNullOffset = DATA_NULL_OFFSET;
+    /** @type {number} */
     this.dataLength = NEW_DATA_START_OFFSET;
 
     // set the index-2 indexes for the 2=0x80>>SHIFT_2 ASCII data blocks
@@ -239,7 +262,9 @@ class UnicodeTrieBuilder {
       this.index2[INDEX_2_NULL_OFFSET + i] = DATA_NULL_OFFSET;
     }
 
+    /** @type {number} */
     this.index2NullOffset = INDEX_2_NULL_OFFSET;
+    /** @type {number} */
     this.index2Length = INDEX_2_START_OFFSET;
 
     // set the index-1 indexes for the linear index-2 block
@@ -262,6 +287,11 @@ class UnicodeTrieBuilder {
     }
   }
 
+  /**
+   * @param {number} codePoint
+   * @param {number} value
+   * @returns {this}
+   */
   set(codePoint, value) {
     if ((codePoint < 0) || (codePoint > 0x10ffff)) {
       throw new Error('Invalid code point');
@@ -276,6 +306,13 @@ class UnicodeTrieBuilder {
     return this;
   }
 
+  /**
+   * @param {number} start
+   * @param {number} end
+   * @param {number} value
+   * @param {boolean} [overwrite=true]
+   * @returns {this}
+   */
   setRange(start, end, value, overwrite) {
     let block, repeatBlock;
     if (overwrite == null) {
@@ -385,6 +422,11 @@ class UnicodeTrieBuilder {
     return this;
   }
 
+  /**
+   * @param {number} c
+   * @param {boolean} [fromLSCP=true]
+   * @returns {number}
+   */
   get(c, fromLSCP) {
     let i2;
     if (fromLSCP == null) {
@@ -408,6 +450,11 @@ class UnicodeTrieBuilder {
     return this.data[block + (c & DATA_MASK)];
   }
 
+  /**
+   * @param {number} c
+   * @param {boolean} forLSCP
+   * @returns {boolean}
+   */
   _isInNullBlock(c, forLSCP) {
     let i2;
     if (((c & 0xfffffc00) === 0xd800) && forLSCP) {
@@ -420,6 +467,9 @@ class UnicodeTrieBuilder {
     return block === this.dataNullOffset;
   }
 
+  /**
+   * @returns {number}
+   */
   _allocIndex2Block() {
     const newBlock = this.index2Length;
     const newTop = newBlock + INDEX_2_BLOCK_LENGTH;
@@ -436,6 +486,11 @@ class UnicodeTrieBuilder {
     return newBlock;
   }
 
+  /**
+   * @param {number} c
+   * @param {boolean} forLSCP
+   * @returns {number}
+   */
   _getIndex2Block(c, forLSCP) {
     if ((c >= 0xd800) && (c < 0xdc00) && forLSCP) {
       return LSCP_INDEX_2_OFFSET;
@@ -451,10 +506,18 @@ class UnicodeTrieBuilder {
     return i2;
   }
 
+  /**
+   * @param {number} block
+   * @returns {boolean}
+   */
   _isWritableBlock(block) {
     return (block !== this.dataNullOffset) && (this.map[block >> SHIFT_2] === 1);
   }
 
+  /**
+   * @param {number} copyBlock
+   * @returns {number}
+   */
   _allocDataBlock(copyBlock) {
     let newBlock;
     if (this.firstFreeBlock !== 0) {
@@ -493,12 +556,21 @@ class UnicodeTrieBuilder {
     return newBlock;
   }
 
+  /**
+   * @param {number} block
+   * @returns {void}
+   */
   _releaseDataBlock(block) {
     // put this block at the front of the free-block chain
     this.map[block >> SHIFT_2] = -this.firstFreeBlock;
     this.firstFreeBlock = block;
   }
 
+  /**
+   * @param {number} i2
+   * @param {number} block
+   * @returns {void}
+   */
   _setIndex2Entry(i2, block) {
     ++this.map[block >> SHIFT_2]; // increment first, in case block == oldBlock!
     const oldBlock = this.index2[i2];
@@ -509,6 +581,11 @@ class UnicodeTrieBuilder {
     this.index2[i2] = block;
   }
 
+  /**
+   * @param {number} c
+   * @param {boolean} forLSCP
+   * @returns {number}
+   */
   _getDataBlock(c, forLSCP) {
     let i2 = this._getIndex2Block(c, forLSCP);
     i2 += (c >> SHIFT_2) & INDEX_2_MASK;
@@ -524,6 +601,15 @@ class UnicodeTrieBuilder {
     return newBlock;
   }
 
+  /**
+   * @param {number} block
+   * @param {number} start
+   * @param {number} limit
+   * @param {number} value
+   * @param {number} initialValue
+   * @param {boolean} overwrite
+   * @returns {void}
+   */
   _fillBlock(block, start, limit, value, initialValue, overwrite) {
     let i;
     if (overwrite) {
@@ -539,6 +625,11 @@ class UnicodeTrieBuilder {
     }
   }
 
+  /**
+   * @param {number} block
+   * @param {number} value
+   * @returns {void}
+   */
   _writeBlock(block, value) {
     const limit = block + DATA_BLOCK_LENGTH;
     while (block < limit) {
@@ -546,6 +637,10 @@ class UnicodeTrieBuilder {
     }
   }
 
+  /**
+   * @param {number} highValue
+   * @returns {number}
+   */
   _findHighStart(highValue) {
     let prevBlock, prevI2Block;
     const data32 = this.data;
@@ -618,6 +713,12 @@ class UnicodeTrieBuilder {
     return 0;
   }
 
+  /**
+   * @param {number} dataLength
+   * @param {number} otherBlock
+   * @param {number} blockLength
+   * @returns {number}
+   */
   _findSameDataBlock(dataLength, otherBlock, blockLength) {
     // ensure that we do not even partially get past dataLength
     dataLength -= blockLength;
@@ -632,6 +733,11 @@ class UnicodeTrieBuilder {
     return -1;
   }
 
+  /**
+   * @param {number} index2Length
+   * @param {number} otherBlock
+   * @returns {number}
+   */
   _findSameIndex2Block(index2Length, otherBlock) {
     // ensure that we do not even partially get past index2Length
     index2Length -= INDEX_2_BLOCK_LENGTH;
@@ -644,6 +750,9 @@ class UnicodeTrieBuilder {
     return -1;
   }
 
+  /**
+   * @returns {void}
+   */
   _compactData() {
     // do not compact linear-ASCII data
     let newStart = DATA_START_OFFSET;
@@ -748,6 +857,9 @@ class UnicodeTrieBuilder {
     this.dataLength = newStart;
   }
 
+  /**
+   * @returns {void}
+   */
   _compactIndex2() {
     // do not compact linear-BMP index-2 blocks
     let newStart = INDEX_2_BMP_LENGTH;
@@ -823,6 +935,9 @@ class UnicodeTrieBuilder {
     this.index2Length = newStart;
   }
 
+  /**
+   * @returns {void}
+   */
   _compact() {
     // find highStart and round it up
     let highValue = this.get(0x10ffff);
@@ -857,6 +972,9 @@ class UnicodeTrieBuilder {
     this.isCompacted = true;
   }
 
+  /**
+   * @returns {import('./index.js').default}
+   */
   freeze() {
     let allIndexesLength, i;
     if (!this.isCompacted) {
@@ -928,13 +1046,16 @@ class UnicodeTrieBuilder {
     return dest;
   }
 
-  // Generates a Buffer containing the serialized and compressed trie.
-  // Trie data is compressed once with raw deflate (a second pass does not help).
-  // Format:
-  //   uint32_t highStart;
-  //   uint32_t errorValue;
-  //   uint32_t uncompressedDataLength;
-  //   uint8_t trieData[dataLength];
+  /**
+   * Generates a Buffer containing the serialized and compressed trie.
+   * Trie data is compressed once with raw deflate (a second pass does not help).
+   * Format:
+   *   uint32_t highStart;
+   *   uint32_t errorValue;
+   *   uint32_t uncompressedDataLength;
+   *   uint8_t trieData[dataLength];
+   * @returns {Buffer}
+   */
   toBuffer() {
     const trie = this.freeze();
 

@@ -6,6 +6,10 @@ import IndicShaper from './IndicShaper';
 import ThaiShaper from './ThaiShaper';
 import UniversalShaper from './UniversalShaper';
 
+/** @typedef {typeof DefaultShaper} ShaperClass */
+/** @typedef {import('../../../types/fontkit').ScriptTag} ScriptTag */
+
+/** @type {Record<string, ShaperClass>} */
 const SHAPERS = {
   arab: ArabicShaper, // Arabic
   mong: ArabicShaper, // Mongolian
@@ -93,12 +97,21 @@ const SHAPERS = {
   DFLT: DefaultShaper // Default
 };
 
+/**
+ * @param {ScriptTag | string[] | null | undefined} script
+ * @returns {ShaperClass}
+ */
 export function choose(script) {
+  /** @type {Array<string | null | undefined>} */
+  let scripts;
   if (!Array.isArray(script)) {
-    script = [script];
+    scripts = [script];
+  } else {
+    scripts = script;
   }
 
-  for (let s of script) {
+  for (let s of scripts) {
+    if (s == null) continue;
     let shaper = SHAPERS[s];
     if (shaper) {
       return shaper;

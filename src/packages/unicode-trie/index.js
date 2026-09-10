@@ -1,6 +1,32 @@
 import { inflateSync } from 'fflate';
 import { swap32LE } from './swap.js';
 
+/**
+ * Pre-parsed trie payload (e.g. from UnicodeTrieBuilder.freeze).
+ * @typedef {object} UnicodeTrieInit
+ * @property {Int32Array | Uint32Array} data
+ * @property {number} highStart
+ * @property {number} errorValue
+ */
+
+/**
+ * Duck-type Node Buffer (has LE/BE readers + slice), matching prior runtime checks.
+ * @param {unknown} value
+ * @returns {value is Buffer}
+ */
+function isNodeBuffer(value) {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && 'readUInt32BE' in value
+    && 'readUInt32LE' in value
+    && 'slice' in value
+    && typeof value.readUInt32BE === 'function'
+    && typeof value.readUInt32LE === 'function'
+    && typeof value.slice === 'function'
+  );
+}
+
 // Shift size for getting the index-1 table offset.
 const SHIFT_1 = 6 + 5;
 
@@ -64,38 +90,64 @@ const INDEX_1_OFFSET = UTF8_2B_INDEX_2_OFFSET + UTF8_2B_INDEX_2_LENGTH;
 const DATA_GRANULARITY = 1 << INDEX_SHIFT;
 
 class UnicodeTrie {
+  /**
+   * @param {Uint8Array | Buffer | UnicodeTrieInit} data
+   */
   constructor(data) {
-    const isBuffer = (typeof data.readUInt32BE === 'function') && (typeof data.slice === 'function');
-
-    if (isBuffer || data instanceof Uint8Array) {
+    if (isNodeBuffer(data) || data instanceof Uint8Array) {
       // read binary format
+      /** @type {Uint8Array} */
+      let bytes;
       let uncompressedLength;
-      if (isBuffer) {
+      if (isNodeBuffer(data)) {
         this.highStart = data.readUInt32LE(0);
         this.errorValue = data.readUInt32LE(4);
         uncompressedLength = data.readUInt32LE(8);
-        data = data.slice(12);
+        // View past the 12-byte header (avoids Buffer.slice → Uint8Array assignability issues).
+        bytes = new Uint8Array(data.buffer, data.byteOffset + 12, data.byteLength - 12);
       } else {
         const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
         this.highStart = view.getUint32(0, true);
         this.errorValue = view.getUint32(4, true);
         uncompressedLength = view.getUint32(8, true);
-        data = data.subarray(12);
+        bytes = data.subarray(12);
       }
 
       // inflate the actual trie data (raw deflate, matching builder)
-      data = inflateSync(data, { out: new Uint8Array(uncompressedLength) });
+      bytes = inflateSync(bytes, { out: new Uint8Array(uncompressedLength) });
 
       // swap bytes from little-endian
-      swap32LE(data);
+      swap32LE(bytes);
 
-      this.data = new Uint32Array(data.buffer, data.byteOffset, data.byteLength >> 2);
+      /**
+       * Compacted index + data table.
+       * @type {Uint32Array | Int32Array}
+       */
+      this.data = new Uint32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 2);
     } else {
       // pre-parsed data
-      ({ data: this.data, highStart: this.highStart, errorValue: this.errorValue } = data);
+      /**
+       * Compacted index + data table.
+       * @type {Uint32Array | Int32Array}
+       */
+      this.data = data.data;
+      /**
+       * First code point of the final single-value range.
+       * @type {number}
+       */
+      this.highStart = data.highStart;
+      /**
+       * Value returned for out-of-range code points.
+       * @type {number}
+       */
+      this.errorValue = data.errorValue;
     }
   }
 
+  /**
+   * @param {number} codePoint
+   * @returns {number}
+   */
   get(codePoint) {
     let index;
     if ((codePoint < 0) || (codePoint > 0x10ffff)) {

@@ -1,5 +1,8 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+
+/** @type {import('restructure').Struct} */
 export let BigMetrics = new r.Struct({
   height: r.uint8,
   width: r.uint8,
@@ -11,6 +14,7 @@ export let BigMetrics = new r.Struct({
   vertAdvance: r.uint8
 });
 
+/** @type {import('restructure').Struct} */
 export let SmallMetrics = new r.Struct({
   height: r.uint8,
   width: r.uint8,
@@ -25,10 +29,13 @@ let EBDTComponent = new r.Struct({
   yOffset: r.int8
 });
 
-class ByteAligned {}
+/** Marker codecs for bitmap payload layout (decoded by glyph consumers). */
+/** @type {BaseType} */
+const ByteAligned = {};
+/** @type {BaseType} */
+const BitAligned = {};
 
-class BitAligned {}
-
+/** @type {import('restructure').VersionedStruct} */
 export let glyph = new r.VersionedStruct('version', {
   1: {
     metrics: SmallMetrics,

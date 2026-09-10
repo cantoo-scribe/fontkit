@@ -1,5 +1,7 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let SubHeader = new r.Struct({
   firstCode: r.uint16,
   entryCount: r.uint16,
@@ -43,16 +45,29 @@ let CmapSubtable = new r.VersionedStruct(r.uint16, {
     length: r.uint16,
     language: r.uint16,
     subHeaderKeys: new r.Array(r.uint16, 256),
-    subHeaderCount: t => Math.max.apply(Math, t.subHeaderKeys),
+    /**
+     * Keys store subHeaderIndex * 8; count is max index + 1.
+     * @param {StructValue} t
+     * @returns {number}
+     */
+    subHeaderCount: t => (Math.max.apply(Math, /** @type {number[]} */ (t.subHeaderKeys)) / 8) + 1,
     subHeaders: new r.LazyArray(SubHeader, 'subHeaderCount'),
-    glyphIndexArray: new r.LazyArray(r.uint16, 'subHeaderCount')
+    glyphIndexArray: new r.LazyArray(
+      r.uint16,
+      /** @param {StructValue} t @returns {number} */
+      t => (/** @type {number} */ (t.length) - /** @type {number} */ (t._currentOffset)) / 2
+    )
   },
 
   4: { // Segment mapping to delta values
     length: r.uint16, // Total table length in bytes
     language: r.uint16, // Language code
     segCountX2: r.uint16,
-    segCount: t => t.segCountX2 >> 1,
+    /**
+     * @param {StructValue} t
+     * @returns {number}
+     */
+    segCount: t => /** @type {number} */ (t.segCountX2) >> 1,
     searchRange: r.uint16,
     entrySelector: r.uint16,
     rangeShift: r.uint16,
@@ -61,7 +76,11 @@ let CmapSubtable = new r.VersionedStruct(r.uint16, {
     startCode: new r.LazyArray(r.uint16, 'segCount'),
     idDelta: new r.LazyArray(r.int16, 'segCount'),
     idRangeOffset: new r.LazyArray(r.uint16, 'segCount'),
-    glyphIndexArray: new r.LazyArray(r.uint16, t => (t.length - t._currentOffset) / 2)
+    glyphIndexArray: new r.LazyArray(
+      r.uint16,
+      /** @param {StructValue} t @returns {number} */
+      t => (/** @type {number} */ (t.length) - /** @type {number} */ (t._currentOffset)) / 2
+    )
   },
 
   6: { // Trimmed table
@@ -86,8 +105,8 @@ let CmapSubtable = new r.VersionedStruct(r.uint16, {
     length: r.uint32,
     language: r.uint32,
     firstCode: r.uint32,
-    entryCount: r.uint32,
-    glyphIndices: new r.LazyArray(r.uint16, 'numChars')
+    entryCount: r.uint32, // OpenType name: numChars
+    glyphIndices: new r.LazyArray(r.uint16, 'entryCount')
   },
 
   12: { // Segmented coverage
@@ -120,6 +139,7 @@ let CmapEntry = new r.Struct({
 });
 
 // character to glyph mapping
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16,
   numSubtables: r.uint16,

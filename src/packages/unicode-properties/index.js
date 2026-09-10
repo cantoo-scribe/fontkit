@@ -2,6 +2,10 @@ import UnicodeTrie from '../unicode-trie/index.js';
 import data from './data.js';
 import trieBase64 from './data-trie.js';
 
+/**
+ * @param {string} base64
+ * @returns {Uint8Array}
+ */
 function decodeBase64(base64) {
   if (typeof Buffer !== 'undefined') {
     return new Uint8Array(Buffer.from(base64, 'base64'));
@@ -17,7 +21,12 @@ function decodeBase64(base64) {
 
 const trie = new UnicodeTrie(decodeBase64(trieBase64));
 
+/** @type {(n: number) => number} */
 const log2 = Math.log2 || (n => Math.log(n) / Math.LN2);
+/**
+ * @param {number} n
+ * @returns {number}
+ */
 const bits = n => ((log2(n) + 1) | 0);
 
 // compute the number of bits stored for each field
@@ -38,26 +47,46 @@ const SCRIPT_MASK = (1 << SCRIPT_BITS) - 1;
 const EAW_MASK = (1 << EAW_BITS) - 1;
 const NUMBER_MASK = (1 << NUMBER_BITS) - 1;
 
+/**
+ * @param {number} codePoint
+ * @returns {string}
+ */
 export function getCategory(codePoint) {
   const val = trie.get(codePoint);
   return data.categories[(val >> CATEGORY_SHIFT) & CATEGORY_MASK];
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {string}
+ */
 export function getCombiningClass(codePoint) {
   const val = trie.get(codePoint);
   return data.combiningClasses[(val >> COMBINING_SHIFT) & COMBINING_MASK];
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {string}
+ */
 export function getScript(codePoint) {
   const val = trie.get(codePoint);
   return data.scripts[(val >> SCRIPT_SHIFT) & SCRIPT_MASK];
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {string}
+ */
 export function getEastAsianWidth(codePoint) {
   const val = trie.get(codePoint);
   return data.eaw[(val >> EAW_SHIFT) & EAW_MASK];
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {number | null}
+ */
 export function getNumericValue(codePoint) {
   let val = trie.get(codePoint);
   let num = val & NUMBER_MASK;
@@ -90,6 +119,10 @@ export function getNumericValue(codePoint) {
   }
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isAlphabetic(codePoint) {
   const category = getCategory(codePoint);
   return (
@@ -102,10 +135,18 @@ export function isAlphabetic(codePoint) {
   );
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isDigit(codePoint) {
   return getCategory(codePoint) === 'Nd';
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isPunctuation(codePoint) {
   const category = getCategory(codePoint);
   return (
@@ -119,18 +160,34 @@ export function isPunctuation(codePoint) {
   );
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isLowerCase(codePoint) {
   return getCategory(codePoint) === 'Ll';
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isUpperCase(codePoint) {
   return getCategory(codePoint) === 'Lu';
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isTitleCase(codePoint) {
   return getCategory(codePoint) === 'Lt';
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isWhiteSpace(codePoint) {
   const category = getCategory(codePoint);
   return (
@@ -140,6 +197,10 @@ export function isWhiteSpace(codePoint) {
   );
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isBaseForm(codePoint) {
   const category = getCategory(codePoint);
   return (
@@ -156,6 +217,10 @@ export function isBaseForm(codePoint) {
   );
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {boolean}
+ */
 export function isMark(codePoint) {
   const category = getCategory(codePoint);
   return (

@@ -2,6 +2,12 @@
  * Represents positioning information for a glyph in a GlyphRun.
  */
 export default class GlyphPosition {
+  /**
+   * @param {number} [xAdvance]
+   * @param {number} [yAdvance]
+   * @param {number} [xOffset]
+   * @param {number} [yOffset]
+   */
   constructor(xAdvance = 0, yAdvance = 0, xOffset = 0, yOffset = 0) {
     /**
      * The amount to move the virtual pen in the X direction after rendering this glyph.

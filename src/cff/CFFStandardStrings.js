@@ -1,5 +1,6 @@
 // Automatically generated from Appendix A of the CFF specification; do
 // not edit. Length should be 391.
+/** @type {string[]} */
 export default [
   '.notdef', 'space', 'exclam', 'quotedbl', 'numbersign', 'dollar',
   'percent', 'ampersand', 'quoteright', 'parenleft', 'parenright',

@@ -8,6 +8,7 @@ let GaspRange = new r.Struct({
   ])
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16, // set to 0
   numRanges: r.uint16,

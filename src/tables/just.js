@@ -1,11 +1,13 @@
 import * as r from 'restructure';
 import { LookupTable, StateTable1 } from './aat';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let ClassTable = new r.Struct({
   length: r.uint16,
   coverage: r.uint16,
   subFeatureFlags: r.uint32,
-  stateTable: new StateTable1()
+  stateTable: StateTable1()
 });
 
 let WidthDeltaRecord = new r.Struct({
@@ -58,21 +60,30 @@ let Action = new r.Struct({
   actionType: r.uint16,
   actionLength: r.uint32,
   actionData: ActionData,
-  padding: new r.Reserved(r.uint8, t => t.actionLength - t._currentOffset)
+  padding: new r.Reserved(
+    r.uint8,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.actionLength) - /** @type {number} */ (t._currentOffset)
+  )
 });
 
 let PostcompensationAction = new r.Array(Action, r.uint32);
 let PostCompensationTable = new r.Struct({
-  lookupTable: new LookupTable(new r.Pointer(r.uint16, PostcompensationAction))
+  lookupTable: LookupTable(new r.Pointer(r.uint16, PostcompensationAction))
 });
 
 let JustificationTable = new r.Struct({
   classTable: new r.Pointer(r.uint16, ClassTable, { type: 'parent' }),
   wdcOffset: r.uint16,
   postCompensationTable: new r.Pointer(r.uint16, PostCompensationTable, { type: 'parent' }),
-  widthDeltaClusters: new LookupTable(new r.Pointer(r.uint16, WidthDeltaCluster, { type: 'parent', relativeTo: ctx => ctx.wdcOffset }))
+  widthDeltaClusters: LookupTable(new r.Pointer(r.uint16, WidthDeltaCluster, {
+    type: 'parent',
+    /** @param {StructValue} ctx @returns {number} */
+    relativeTo: ctx => /** @type {number} */ (ctx.wdcOffset)
+  }))
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint32,
   format: r.uint16,

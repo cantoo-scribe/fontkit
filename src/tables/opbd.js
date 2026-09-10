@@ -8,8 +8,9 @@ let OpticalBounds = new r.Struct({
   bottom: r.int16
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.fixed32,
   format: r.uint16,
-  lookupTable: new LookupTable(OpticalBounds)
+  lookupTable: LookupTable(OpticalBounds)
 });

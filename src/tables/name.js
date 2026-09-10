@@ -1,23 +1,81 @@
 import * as r from 'restructure';
 import { getEncoding, LANGUAGES } from '../encodings';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
+/**
+ * @typedef {{
+ *   platformID: number,
+ *   encodingID: number,
+ *   languageID: number,
+ *   nameID: number,
+ *   length: number,
+ *   string: string
+ * }} NameRecordValue
+ */
+
+/**
+ * @typedef {Record<string, string | unknown>} LangStringMap
+ */
+
+/**
+ * @typedef {{
+ *   fontFeatures: Record<number, LangStringMap>,
+ *   reservedNameID?: Record<number, LangStringMap>,
+ *   [key: string]: LangStringMap | Record<number, LangStringMap> | undefined
+ * }} NameRecordsMap
+ */
+
+/**
+ * @typedef {StructValue & {
+ *   version: number,
+ *   count: number,
+ *   stringOffset: number,
+ *   records: NameRecordValue[] | NameRecordsMap,
+ *   langTags?: Array<{ tag: string }>
+ * }} NameTableValue
+ */
+
 let NameRecord = new r.Struct({
   platformID: r.uint16,
   encodingID: r.uint16,
   languageID: r.uint16,
   nameID: r.uint16,
   length: r.uint16,
-  string: new r.Pointer(r.uint16,
-    new r.String('length', t => getEncoding(t.platformID, t.encodingID, t.languageID)),
-    { type: 'parent', relativeTo: ctx => ctx.parent.stringOffset, allowNull: false }
+  string: new r.Pointer(
+    r.uint16,
+    new r.String(
+      'length',
+      /** @param {StructValue} t @returns {string} */
+      t => getEncoding(
+        /** @type {number} */ (t.platformID),
+        /** @type {number} */ (t.encodingID),
+        /** @type {number} */ (t.languageID)
+      ) || 'utf16be'
+    ),
+    {
+      type: 'parent',
+      /** @param {StructValue} ctx @returns {number} */
+      relativeTo: ctx => /** @type {number} */ (/** @type {StructValue} */ (ctx.parent).stringOffset),
+      allowNull: false
+    }
   )
 });
 
 let LangTagRecord = new r.Struct({
   length: r.uint16,
-  tag: new r.Pointer(r.uint16, new r.String('length', 'utf16be'), { type: 'parent', relativeTo: ctx => ctx.stringOffset })
+  tag: new r.Pointer(
+    r.uint16,
+    new r.String('length', 'utf16be'),
+    {
+      type: 'parent',
+      /** @param {StructValue} ctx @returns {number} */
+      relativeTo: ctx => /** @type {number} */ (ctx.stringOffset)
+    }
+  )
 });
 
+/** @type {import('restructure').VersionedStruct} */
 var NameTable = new r.VersionedStruct(r.uint16, {
   0: {
     count: r.uint16,
@@ -64,6 +122,12 @@ const NAMES = [
   'variationsPostScriptNamePrefix'
 ];
 
+/**
+ * @param {NameRecordValue[]} out
+ * @param {number} nameID
+ * @param {unknown} string
+ * @returns {void}
+ */
 function pushEnRecord(out, nameID, string) {
   if (typeof string !== 'string') return;
 
@@ -78,13 +142,17 @@ function pushEnRecord(out, nameID, string) {
 }
 
 NameTable.process = function (_stream) {
+  let self = /** @type {NameTableValue} */ (this);
+  /** @type {NameRecordsMap} */
   let records = { fontFeatures: {} };
 
-  for (let record of this.records) {
-    let language = LANGUAGES[record.platformID][record.languageID];
+  for (let record of /** @type {NameRecordValue[]} */ (self.records)) {
+    let platformMap = LANGUAGES[record.platformID] || {};
+    /** @type {string | undefined} */
+    let language = platformMap[record.languageID];
 
-    if (language == null && this.langTags != null && record.languageID >= 0x8000) {
-      language = this.langTags[record.languageID - 0x8000].tag;
+    if (language == null && self.langTags != null && record.languageID >= 0x8000) {
+      language = self.langTags[record.languageID - 0x8000].tag;
     }
 
     if (language == null) {
@@ -109,49 +177,62 @@ NameTable.process = function (_stream) {
     }
   }
 
-  this.records = records;
+  self.records = records;
 };
 
 NameTable.preEncode = function () {
-  if (Array.isArray(this.records)) return;
-  this.version = 0;
+  let self = /** @type {NameTableValue} */ (this);
+  if (Array.isArray(self.records)) return;
+  self.version = 0;
 
+  /** @type {NameRecordValue[]} */
   let records = [];
-  for (let key in this.records) {
-    let val = this.records[key];
+  /** @type {NameRecordsMap} */
+  let map = self.records;
+  for (let key of Object.keys(map)) {
+    let val = map[key];
 
     if (key === 'fontFeatures') {
       // Mirrors of IDs < 256 are encoded via named/reserved keys above.
-      for (let id in val) {
-        if (+id >= 256) pushEnRecord(records, +id, val[id].en);
+      let features = /** @type {Record<number, LangStringMap>} */ (val);
+      for (let id of Object.keys(features)) {
+        if (+id >= 256) {
+          let langs = features[+id];
+          pushEnRecord(records, +id, langs && langs.en);
+        }
       }
       continue;
     }
 
     if (key === 'reservedNameID') {
-      for (let id in val) pushEnRecord(records, +id, val[id].en);
+      let reserved = /** @type {Record<number, LangStringMap>} */ (val);
+      for (let id of Object.keys(reserved)) {
+        let langs = reserved[+id];
+        pushEnRecord(records, +id, langs && langs.en);
+      }
       continue;
     }
 
     let nameID = NAMES.indexOf(key);
     if (nameID < 0) continue;
 
-    pushEnRecord(records, nameID, val.en);
+    let langs = /** @type {LangStringMap} */ (val);
+    pushEnRecord(records, nameID, langs.en);
 
     // Match historical behaviour: also write PostScript name for Mac platform.
-    if (key === 'postscriptName' && typeof val.en === 'string') {
+    if (key === 'postscriptName' && typeof langs.en === 'string') {
       records.push({
         platformID: 1,
         encodingID: 0,
         languageID: 0,
         nameID,
-        length: val.en.length,
-        string: val.en
+        length: langs.en.length,
+        string: langs.en
       });
     }
   }
 
-  this.records = records;
-  this.count = records.length;
-  this.stringOffset = NameTable.size(this, null, false);
+  self.records = records;
+  self.count = records.length;
+  self.stringOffset = NameTable.size(self, null, false);
 };

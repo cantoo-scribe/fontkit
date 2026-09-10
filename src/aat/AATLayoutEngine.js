@@ -1,13 +1,27 @@
 import * as AATFeatureMap from './AATFeatureMap';
 import AATMorxProcessor from './AATMorxProcessor';
 
+/** @typedef {import('../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../types/fontkit').GlyphRunLike} GlyphRunLike */
+/** @typedef {import('../../types/fontkit').ScriptTag} ScriptTag */
+/** @typedef {import('../../types/fontkit').LanguageTag} LanguageTag */
+
 export default class AATLayoutEngine {
+  /**
+   * @param {LayoutFont} font
+   */
   constructor(font) {
+    /** @type {LayoutFont} */
     this.font = font;
+    /** @type {AATMorxProcessor} */
     this.morxProcessor = new AATMorxProcessor(font);
+    /** @type {boolean} */
     this.fallbackPosition = false;
   }
 
+  /**
+   * @param {GlyphRunLike} glyphRun
+   */
   substitute(glyphRun) {
     // AAT expects the glyphs to be in visual order prior to morx processing,
     // so reverse the glyphs if the script is right-to-left.
@@ -15,13 +29,25 @@ export default class AATLayoutEngine {
       glyphRun.glyphs.reverse();
     }
 
-    this.morxProcessor.process(glyphRun.glyphs, AATFeatureMap.mapOTToAAT(glyphRun.features));
+    this.morxProcessor.process(
+      /** @type {import('../../types/fontkit').LayoutGlyph[]} */ (glyphRun.glyphs),
+      AATFeatureMap.mapOTToAAT(glyphRun.features)
+    );
   }
 
+  /**
+   * @param {ScriptTag | string[] | null | undefined} [_script]
+   * @param {LanguageTag | null | undefined} [_language]
+   * @returns {string[]}
+   */
   getAvailableFeatures(_script, _language) {
     return AATFeatureMap.mapAATToOT(this.morxProcessor.getSupportedFeatures());
   }
 
+  /**
+   * @param {number} gid
+   * @returns {Set<string>}
+   */
   stringsForGlyph(gid) {
     let glyphStrings = this.morxProcessor.generateInputs(gid);
     let result = new Set();
@@ -33,6 +59,12 @@ export default class AATLayoutEngine {
     return result;
   }
 
+  /**
+   * @param {number[]} glyphs
+   * @param {number} index
+   * @param {Set<string>} strings
+   * @param {string} string
+   */
   _addStrings(glyphs, index, strings, string) {
     let codePoints = this.font._cmapProcessor.codePointsForGlyph(glyphs[index]);
 

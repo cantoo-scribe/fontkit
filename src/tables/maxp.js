@@ -1,6 +1,7 @@
 import * as r from 'restructure';
 
 // maxiumum profile
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.int32,
   numGlyphs: r.uint16, // The number of glyphs in the font

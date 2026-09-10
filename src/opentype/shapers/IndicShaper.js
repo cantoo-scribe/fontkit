@@ -17,9 +17,24 @@ import {
 import { decodeBase64 } from '../../utils';
 import indicTrie from './indic.trie';
 
-const { decompositions } = useData;
+/** @typedef {import('../../../types/fontkit').ShapingPlanLike} ShapingPlanLike */
+/** @typedef {import('../../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+/** @typedef {import('../../../types/fontkit').IndicGlyphInfo} IndicGlyphInfo */
+/** @typedef {import('../../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../../types/fontkit').IndicConfig} IndicConfig */
+/** @typedef {import('../../../types/fontkit').IndicShaperInfo} IndicShaperInfo */
+/** @typedef {import('../../../types/fontkit').ShapingStageFn} ShapingStageFn */
+/** @typedef {import('dfa').StateMachineDefinition} StateMachineDefinition */
+
+/**
+ * @typedef {{ decompositions: Record<string, number[]> }} UseDataPartial
+ */
+
+/** @type {UseDataPartial} */
+const useDataTyped = /** @type {UseDataPartial} */ (useData);
+const { decompositions } = useDataTyped;
 const trie = new UnicodeTrie(decodeBase64(indicTrie));
-const stateMachine = new StateMachine(indicMachine);
+const stateMachine = new StateMachine(/** @type {StateMachineDefinition} */ (indicMachine));
 
 /**
  * The IndicShaper supports indic scripts e.g. Devanagari, Kannada, etc.
@@ -27,6 +42,10 @@ const stateMachine = new StateMachine(indicMachine);
  */
 export default class IndicShaper extends DefaultShaper {
   static zeroMarkWidths = 'NONE';
+
+  /**
+   * @param {ShapingPlanLike} plan
+   */
   static planFeatures(plan) {
     plan.addStage(setupSyllables);
 
@@ -55,24 +74,39 @@ export default class IndicShaper extends DefaultShaper {
     });
 
     // Setup the indic config for the selected script
-    plan.unicodeScript = Script.fromOpenType(plan.script);
-    plan.indicConfig = INDIC_CONFIGS[plan.unicodeScript] || INDIC_CONFIGS.Default;
-    plan.isOldSpec = plan.indicConfig.hasOldSpec && plan.script[plan.script.length - 1] !== '2';
+    let scriptTag = Array.isArray(plan.script) ? plan.script[0] : plan.script;
+    plan.unicodeScript = scriptTag != null ? Script.fromOpenType(scriptTag) : undefined;
+    /** @type {Record<string, IndicConfig>} */
+    let configs = INDIC_CONFIGS;
+    plan.indicConfig = (plan.unicodeScript && configs[plan.unicodeScript]) || configs.Default;
+    let scriptKey = Array.isArray(plan.script)
+      ? plan.script[plan.script.length - 1]
+      : plan.script;
+    plan.isOldSpec = !!(plan.indicConfig.hasOldSpec && scriptKey != null && scriptKey[scriptKey.length - 1] !== '2');
 
     // TODO: turn off kern (Khmer) and liga features.
   }
 
+  /**
+   * @param {ShapingPlanLike} plan
+   * @param {GlyphInfoLike[]} glyphs
+   */
   static assignFeatures(plan, glyphs) {
     // Decompose split matras
     // TODO: do this in a more general unicode normalizer
     for (let i = glyphs.length - 1; i >= 0; i--) {
       let codepoint = glyphs[i].codePoints[0];
-      let d = INDIC_DECOMPOSITIONS[codepoint] || decompositions[codepoint];
+      let d = /** @type {Record<number, number[]>} */ (INDIC_DECOMPOSITIONS)[codepoint]
+        || decompositions[String(codepoint)];
       if (d) {
-        let decomposed = d.map((c) => {
+        /** @type {GlyphInfo[]} */
+        let decomposed = [];
+        for (let c of d) {
           let g = plan.font.glyphForCodePoint(c);
-          return new GlyphInfo(plan.font, g.id, [c], glyphs[i].features);
-        });
+          if (g) {
+            decomposed.push(new GlyphInfo(plan.font, g.id, [c], glyphs[i].features));
+          }
+        }
 
         glyphs.splice(i, 1, ...decomposed);
       }
@@ -80,23 +114,63 @@ export default class IndicShaper extends DefaultShaper {
   }
 }
 
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {number}
+ */
 function indicCategory(glyph) {
   return trie.get(glyph.codePoints[0]) >> 8;
 }
 
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {number}
+ */
 function indicPosition(glyph) {
   return 1 << (trie.get(glyph.codePoints[0]) & 0xff);
 }
 
 class IndicInfo {
+  /**
+   * @param {number} category
+   * @param {number} position
+   * @param {string} syllableType
+   * @param {number} syllable
+   */
   constructor(category, position, syllableType, syllable) {
+    /** @type {number} */
     this.category = category;
+    /** @type {number} */
     this.position = position;
+    /** @type {string} */
     this.syllableType = syllableType;
+    /** @type {number} */
     this.syllable = syllable;
   }
 }
 
+/**
+ * @param {import('../../../types/fontkit').IndicShaperInfo | import('../../../types/fontkit').USEShaperInfo | null} info
+ * @returns {info is IndicShaperInfo}
+ */
+function isIndicShaperInfo(info) {
+  // Discriminate on category kind: Indic uses numeric bitflags, USE uses strings.
+  return info != null && typeof info.category === 'number';
+}
+
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {IndicShaperInfo}
+ */
+function indicInfo(glyph) {
+  let info = glyph.shaperInfo;
+  if (!isIndicShaperInfo(info)) {
+    throw new Error('Expected Indic shaperInfo');
+  }
+  return info;
+}
+
+/** @type {ShapingStageFn} */
 function setupSyllables(font, glyphs) {
   let syllable = 0;
   let last = 0;
@@ -131,29 +205,55 @@ function setupSyllables(font, glyphs) {
   }
 }
 
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {number}
+ */
 function isConsonant(glyph) {
-  return glyph.shaperInfo.category & CONSONANT_FLAGS;
+  return indicInfo(glyph).category & CONSONANT_FLAGS;
 }
 
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {number}
+ */
 function isJoiner(glyph) {
-  return glyph.shaperInfo.category & JOINER_FLAGS;
+  return indicInfo(glyph).category & JOINER_FLAGS;
 }
 
+/**
+ * @param {GlyphInfoLike} glyph
+ * @returns {number}
+ */
 function isHalantOrCoeng(glyph) {
-  return glyph.shaperInfo.category & HALANT_OR_COENG_FLAGS;
+  return indicInfo(glyph).category & HALANT_OR_COENG_FLAGS;
 }
 
+/**
+ * @param {GlyphInfoLike[]} glyphs
+ * @param {string} feature
+ * @returns {boolean}
+ */
 function wouldSubstitute(glyphs, feature) {
   for (let glyph of glyphs) {
     glyph.features = { [feature]: true };
   }
 
-  let GSUB = glyphs[0]._font._layoutEngine.engine.GSUBProcessor;
-  GSUB.applyFeatures([feature], glyphs);
+  let engine = glyphs[0]._font._layoutEngine.engine;
+  if (!engine?.GSUBProcessor) {
+    return false;
+  }
+  engine.GSUBProcessor.applyFeatures([feature], glyphs);
 
   return glyphs.length === 1;
 }
 
+/**
+ * @param {LayoutFont} font
+ * @param {GlyphInfoLike} consonant
+ * @param {GlyphInfoLike} virama
+ * @returns {number}
+ */
 function consonantPosition(font, consonant, virama) {
   let glyphs = [virama, consonant, virama];
   if (wouldSubstitute(glyphs.slice(0, 2), 'blwf') || wouldSubstitute(glyphs.slice(1, 3), 'blwf')) {
@@ -167,12 +267,18 @@ function consonantPosition(font, consonant, virama) {
   return POSITIONS.Base_C;
 }
 
-function initialReordering(font, glyphs, plan) {
-  let indicConfig = plan.indicConfig;
-  let features = font._layoutEngine.engine.GSUBProcessor.features;
+/** @type {ShapingStageFn} */
+function initialReordering(font, glyphsArg, plan) {
+  // setupSyllables always attaches IndicShaperInfo before this stage.
+  const glyphs = /** @type {IndicGlyphInfo[]} */ (glyphsArg);
+  let indicConfig = /** @type {IndicConfig} */ (plan.indicConfig);
+  let engine = font._layoutEngine.engine;
+  let features = engine?.GSUBProcessor ? engine.GSUBProcessor.features : {};
 
-  let dottedCircle = font.glyphForCodePoint(0x25cc).id;
-  let virama = font.glyphForCodePoint(indicConfig.virama).id;
+  let dottedCircleGlyph = font.glyphForCodePoint(0x25cc);
+  let dottedCircle = dottedCircleGlyph ? dottedCircleGlyph.id : 0;
+  let viramaGlyph = font.glyphForCodePoint(indicConfig.virama);
+  let virama = viramaGlyph ? viramaGlyph.id : 0;
   if (virama) {
     let info = new GlyphInfo(font, virama, [indicConfig.virama]);
     for (let i = 0; i < glyphs.length; i++) {
@@ -190,7 +296,7 @@ function initialReordering(font, glyphs, plan) {
     }
 
     if (syllableType === 'broken_cluster' && dottedCircle) {
-      let g = new GlyphInfo(font, dottedCircle, [0x25cc]);
+      let g = /** @type {IndicGlyphInfo} */ (new GlyphInfo(font, dottedCircle, [0x25cc]));
       g.shaperInfo = new IndicInfo(
         1 << indicCategory(g),
         indicPosition(g),
@@ -569,9 +675,13 @@ function initialReordering(font, glyphs, plan) {
   }
 }
 
-function finalReordering(font, glyphs, plan) {
-  let indicConfig = plan.indicConfig;
-  let features = font._layoutEngine.engine.GSUBProcessor.features;
+/** @type {ShapingStageFn} */
+function finalReordering(font, glyphsArg, plan) {
+  // setupSyllables / initialReordering always attach IndicShaperInfo before this stage.
+  const glyphs = /** @type {IndicGlyphInfo[]} */ (glyphsArg);
+  let indicConfig = /** @type {IndicConfig} */ (plan.indicConfig);
+  let engine = font._layoutEngine.engine;
+  let features = engine?.GSUBProcessor ? engine.GSUBProcessor.features : {};
 
   for (let start = 0, end = nextSyllable(glyphs, 0); start < glyphs.length; start = end, end = nextSyllable(glyphs, start)) {
     // 4. Final reordering:
@@ -597,7 +707,7 @@ function finalReordering(font, glyphs, plan) {
                 while (base < end && isHalantOrCoeng(glyphs[base])) {
                   base++;
                 }
-                glyphs[base].shaperInfo.position = POSITIONS.BASE_C;
+                glyphs[base].shaperInfo.position = POSITIONS.Base_C;
                 tryPref = false;
               }
               break;
@@ -719,7 +829,7 @@ function finalReordering(font, glyphs, plan) {
       && glyphs[start].shaperInfo.position === POSITIONS.Ra_To_Become_Reph
       && (glyphs[start].shaperInfo.category === CATEGORIES.Repha) !== (glyphs[start].isLigated && !glyphs[start].isMultiplied)
     ) {
-      let newRephPos;
+      let newRephPos = end - 1;
       let rephPos = indicConfig.rephPos;
       let found = false;
 
@@ -906,6 +1016,11 @@ function finalReordering(font, glyphs, plan) {
   }
 }
 
+/**
+ * @param {IndicGlyphInfo[]} glyphs
+ * @param {number} start
+ * @returns {number}
+ */
 function nextSyllable(glyphs, start) {
   if (start >= glyphs.length) return start;
   let syllable = glyphs[start].shaperInfo.syllable;

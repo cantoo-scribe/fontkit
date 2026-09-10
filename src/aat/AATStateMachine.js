@@ -1,5 +1,9 @@
 import AATLookupTable from './AATLookupTable';
 
+/** @typedef {import('../../types/fontkit').AATStateTable} AATStateTable */
+/** @typedef {import('../../types/fontkit').AATStateEntry} AATStateEntry */
+/** @typedef {import('../../types/fontkit').LayoutGlyph} LayoutGlyph */
+
 const START_OF_TEXT_STATE = 0;
 const _START_OF_LINE_STATE = 1;
 
@@ -10,18 +14,43 @@ const _END_OF_LINE_CLASS = 3;
 
 const DONT_ADVANCE = 0x4000;
 
+/**
+ * @callback AATProcessEntry
+ * @param {LayoutGlyph | null} glyph
+ * @param {AATStateEntry} entry
+ * @param {number} index
+ */
+
+/**
+ * @typedef {object} AATTraverseOpts
+ * @property {(glyph: number, entry: AATStateEntry) => void} [enter]
+ * @property {(glyph: number, entry: AATStateEntry) => void} [exit]
+ */
+
 export default class AATStateMachine {
+  /**
+   * @param {AATStateTable} stateTable
+   */
   constructor(stateTable) {
+    /** @type {AATStateTable} */
     this.stateTable = stateTable;
+    /** @type {AATLookupTable} */
     this.lookupTable = new AATLookupTable(stateTable.classTable);
   }
 
+  /**
+   * @param {LayoutGlyph[]} glyphs
+   * @param {boolean} reverse
+   * @param {AATProcessEntry} processEntry
+   * @returns {LayoutGlyph[]}
+   */
   process(glyphs, reverse, processEntry) {
     let currentState = START_OF_TEXT_STATE; // START_OF_LINE_STATE is used for kashida glyph insertions sometimes I think?
     let index = reverse ? glyphs.length - 1 : 0;
     let dir = reverse ? -1 : 1;
 
     while ((dir === 1 && index <= glyphs.length) || (dir === -1 && index >= -1)) {
+      /** @type {LayoutGlyph | null} */
       let glyph = null;
       let classCode;
       let shouldAdvance = true;
@@ -61,6 +90,9 @@ export default class AATStateMachine {
   /**
    * Performs a depth-first traversal of the glyph strings
    * represented by the state machine.
+   * @param {AATTraverseOpts} opts
+   * @param {number} [state]
+   * @param {Set<number>} [visited]
    */
   traverse(opts, state = 0, visited = new Set()) {
     if (visited.has(state)) {

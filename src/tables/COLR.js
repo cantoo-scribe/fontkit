@@ -16,6 +16,7 @@ let BaseGlyphRecord = new r.Struct({
   numLayers: r.uint16
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16,
   numBaseGlyphRecords: r.uint16,

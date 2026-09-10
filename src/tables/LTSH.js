@@ -3,6 +3,7 @@ import * as r from 'restructure';
 // Linear Threshold table
 // Records the ppem for each glyph at which the scaling becomes linear again,
 // despite instructions effecting the advance width
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16,
   numGlyphs: r.uint16,

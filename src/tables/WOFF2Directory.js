@@ -1,6 +1,19 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('../../types/fontkit').TableEntry} TableEntry */
+
+/**
+ * WOFF2 variable-length unsigned integer (Base128).
+ * @type {BaseType}
+ */
 const Base128 = {
+  /**
+   * @param {DecodeStream} stream
+   * @returns {number}
+   */
   decode(stream) {
     let result = 0;
     let iterable = [0, 1, 2, 3, 4];
@@ -34,14 +47,46 @@ let knownTags = [
 
 let WOFF2DirectoryEntry = new r.Struct({
   flags: r.uint8,
-  customTag: new r.Optional(new r.String(4), t => (t.flags & 0x3f) === 0x3f),
-  tag: t => t.customTag || knownTags[t.flags & 0x3f], // || (() => { throw new Error(`Bad tag: ${flags & 0x3f}`); })(); },
+  customTag: new r.Optional(
+    new r.String(4),
+    /** @param {StructValue} t @returns {boolean} */
+    t => (/** @type {number} */ (t.flags) & 0x3f) === 0x3f
+  ),
+  /**
+   * @param {StructValue} t
+   * @returns {string}
+   */
+  tag: (t) => {
+    let flags = /** @type {number} */ (t.flags);
+    return /** @type {string} */ (t.customTag) || knownTags[flags & 0x3f];
+  },
   length: Base128,
-  transformVersion: t => (t.flags >>> 6) & 0x03,
-  transformed: t => (t.tag === 'glyf' || t.tag === 'loca') ? t.transformVersion === 0 : t.transformVersion !== 0,
-  transformLength: new r.Optional(Base128, t => t.transformed)
+  /**
+   * @param {StructValue} t
+   * @returns {number}
+   */
+  transformVersion: t => (/** @type {number} */ (t.flags) >>> 6) & 0x03,
+  /**
+   * @param {StructValue} t
+   * @returns {boolean}
+   */
+  transformed: t => (t.tag === 'glyf' || t.tag === 'loca')
+    ? t.transformVersion === 0
+    : t.transformVersion !== 0,
+  transformLength: new r.Optional(
+    Base128,
+    /** @param {StructValue} t @returns {boolean} */
+    t => !!t.transformed
+  )
 });
 
+/**
+ * @typedef {StructValue & {
+ *   tables: TableEntry[] | Record<string, TableEntry>
+ * }} WOFF2DirectoryValue
+ */
+
+/** @type {import('restructure').Struct} */
 let WOFF2Directory = new r.Struct({
   tag: new r.String(4), // should be 'wOF2'
   flavor: r.uint32,
@@ -61,13 +106,16 @@ let WOFF2Directory = new r.Struct({
 });
 
 WOFF2Directory.process = function () {
+  let self = /** @type {WOFF2DirectoryValue} */ (this);
+  /** @type {Record<string, TableEntry>} */
   let tables = {};
-  for (let i = 0; i < this.tables.length; i++) {
-    let table = this.tables[i];
+  let list = /** @type {TableEntry[]} */ (self.tables);
+  for (let i = 0; i < list.length; i++) {
+    let table = list[i];
     tables[table.tag] = table;
   }
 
-  return this.tables = tables;
+  self.tables = tables;
 };
 
 export default WOFF2Directory;

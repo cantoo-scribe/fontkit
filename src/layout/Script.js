@@ -1,8 +1,11 @@
 import { getScript } from '../packages/unicode-properties/index.js';
 
+/** @typedef {import('../../types/fontkit').TextDirection} TextDirection */
+
 // This maps the Unicode Script property to an OpenType script tag
 // Data from http://www.microsoft.com/typography/otspec/scripttags.htm
 // and http://www.unicode.org/Public/UNIDATA/PropertyValueAliases.txt.
+/** @type {Record<string, string | string[]>} */
 const UNICODE_SCRIPTS = {
   Caucasian_Albanian: 'aghb',
   Arabic: 'arab',
@@ -133,6 +136,7 @@ const UNICODE_SCRIPTS = {
   Unknown: 'zzzz'
 };
 
+/** @type {Record<string, string>} */
 const OPENTYPE_SCRIPTS = {};
 for (let script in UNICODE_SCRIPTS) {
   let tag = UNICODE_SCRIPTS[script];
@@ -145,14 +149,26 @@ for (let script in UNICODE_SCRIPTS) {
   }
 }
 
+/**
+ * @param {string} script
+ * @returns {string | string[] | undefined}
+ */
 export function fromUnicode(script) {
   return UNICODE_SCRIPTS[script];
 }
 
+/**
+ * @param {string} tag
+ * @returns {string | undefined}
+ */
 export function fromOpenType(tag) {
   return OPENTYPE_SCRIPTS[tag];
 }
 
+/**
+ * @param {string} string
+ * @returns {string | string[]}
+ */
 export function forString(string) {
   let len = string.length;
   let idx = 0;
@@ -179,6 +195,10 @@ export function forString(string) {
   return UNICODE_SCRIPTS.Unknown;
 }
 
+/**
+ * @param {number[]} codePoints
+ * @returns {string | string[]}
+ */
 export function forCodePoints(codePoints) {
   for (let i = 0; i < codePoints.length; i++) {
     let codePoint = codePoints[i];
@@ -192,6 +212,7 @@ export function forCodePoints(codePoints) {
 }
 
 // The scripts in this map are written from right to left
+/** @type {Record<string, boolean>} */
 const RTL = {
   arab: true, // Arabic
   hebr: true, // Hebrew
@@ -222,8 +243,13 @@ const RTL = {
   phlp: true // Psalter Pahlavi
 };
 
+/**
+ * @param {string | string[] | null | undefined} script
+ * @returns {TextDirection}
+ */
 export function direction(script) {
-  if (RTL[script]) {
+  let tag = Array.isArray(script) ? script[0] : script;
+  if (tag && RTL[tag]) {
     return 'rtl';
   }
 

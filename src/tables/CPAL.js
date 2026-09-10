@@ -7,6 +7,7 @@ let ColorRecord = new r.Struct({
   alpha: r.uint8
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint16, {
   header: {
     numPaletteEntries: r.uint16,

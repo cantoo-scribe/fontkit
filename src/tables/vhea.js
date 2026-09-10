@@ -1,6 +1,7 @@
 import * as r from 'restructure';
 
 // Vertical Header Table
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.fixed32, // Version number of the Vertical Header Table
   ascent: r.int16, // The vertical typographic ascender for this font

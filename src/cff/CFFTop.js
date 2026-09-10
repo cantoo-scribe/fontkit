@@ -8,33 +8,89 @@ import { StandardEncoding, ExpertEncoding } from './CFFEncodings';
 import { ISOAdobeCharset, ExpertCharset, ExpertSubsetCharset } from './CFFCharsets';
 import { ItemVariationStore } from '../tables/variations';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').EncodeStream} EncodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('../../types/fontkit').CFFEncodeContext} CFFEncodeContext */
+
+/**
+ * @param {StructValue} t
+ * @returns {number}
+ */
+function charStringsCount(t) {
+  let parent = t.parent;
+  if (!parent) {
+    return 0;
+  }
+  let cs = parent.CharStrings;
+  if (cs && typeof cs === 'object' && 'length' in cs && typeof /** @type {{ length: unknown }} */ (cs).length === 'number') {
+    return /** @type {{ length: number }} */ (cs).length;
+  }
+  return 0;
+}
+
 // Checks if an operand is an index of a predefined value,
 // otherwise delegates to the provided type.
 class PredefinedOp {
+  /**
+   * @param {unknown[]} predefinedOps
+   * @param {BaseType} type
+   */
   constructor(predefinedOps, type) {
+    /** @type {unknown[]} */
     this.predefinedOps = predefinedOps;
+    /** @type {BaseType} */
     this.type = type;
   }
 
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue} parent
+   * @param {number[]} operands
+   * @returns {unknown}
+   */
   decode(stream, parent, operands) {
-    if (this.predefinedOps[operands[0]]) {
+    if (this.predefinedOps[operands[0]] != null) {
       return this.predefinedOps[operands[0]];
     }
 
+    if (!this.type.decode) {
+      throw new Error('PredefinedOp type must implement decode()');
+    }
     return this.type.decode(stream, parent, operands);
   }
 
+  /**
+   * @param {unknown} value
+   * @param {StructValue | null | undefined} ctx
+   * @returns {unknown}
+   */
   size(value, ctx) {
+    if (!this.type.size) {
+      throw new Error('PredefinedOp type must implement size()');
+    }
     return this.type.size(value, ctx);
   }
 
+  /**
+   * @param {EncodeStream | null} stream
+   * @param {unknown} value
+   * @param {StructValue | null | undefined} ctx
+   * @returns {unknown[]}
+   */
   encode(stream, value, ctx) {
     let index = this.predefinedOps.indexOf(value);
     if (index !== -1) {
-      return index;
+      // Must be an operand list — CFFDict iterates with for-of.
+      return [index];
     }
 
-    return this.type.encode(stream, value, ctx);
+    if (!this.type.encode) {
+      throw new Error('PredefinedOp type must implement encode()');
+    }
+    let encoded = this.type.encode(stream, value, ctx);
+    return Array.isArray(encoded) ? encoded : [encoded];
   }
 }
 
@@ -43,6 +99,10 @@ class CFFEncodingVersion extends r.Number {
     super('UInt8');
   }
 
+  /**
+   * @param {DecodeStream} stream
+   * @returns {number}
+   */
   decode(stream) {
     return r.uint8.decode(stream) & 0x7f;
   }
@@ -77,15 +137,29 @@ let CFFEncoding = new PredefinedOp([StandardEncoding, ExpertEncoding], new CFFPo
 // Decodes an array of ranges until the total
 // length is equal to the provided length.
 class RangeArray extends r.Array {
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue} parent
+   * @returns {Array<StructValue & { nLeft: number, offset: number }>}
+   */
   decode(stream, parent) {
+    if (this.length == null) {
+      throw new Error('RangeArray requires a length');
+    }
     let length = resolveLength(this.length, stream, parent);
     let count = 0;
+    /** @type {Array<StructValue & { nLeft: number, offset: number }>} */
     let res = [];
     while (count < length) {
-      let range = this.type.decode(stream, parent);
+      if (!this.type.decode) {
+        throw new Error('RangeArray element type must implement decode()');
+      }
+      let range = /** @type {StructValue & { nLeft: number, offset?: number }} */ (
+        this.type.decode(stream, parent)
+      );
       range.offset = count;
       count += range.nLeft + 1;
-      res.push(range);
+      res.push(/** @type {StructValue & { nLeft: number, offset: number }} */ (range));
     }
 
     return res;
@@ -94,15 +168,15 @@ class RangeArray extends r.Array {
 
 let CFFCustomCharset = new r.VersionedStruct(r.uint8, {
   0: {
-    glyphs: new r.Array(r.uint16, t => t.parent.CharStrings.length - 1)
+    glyphs: new r.Array(r.uint16, t => charStringsCount(t) - 1)
   },
 
   1: {
-    ranges: new RangeArray(Range1, t => t.parent.CharStrings.length - 1)
+    ranges: new RangeArray(Range1, t => charStringsCount(t) - 1)
   },
 
   2: {
-    ranges: new RangeArray(Range2, t => t.parent.CharStrings.length - 1)
+    ranges: new RangeArray(Range2, t => charStringsCount(t) - 1)
   }
 });
 
@@ -120,7 +194,7 @@ let FDRange4 = new r.Struct({
 
 let FDSelect = new r.VersionedStruct(r.uint8, {
   0: {
-    fds: new r.Array(r.uint8, t => t.parent.CharStrings.length)
+    fds: new r.Array(r.uint8, t => charStringsCount(t))
   },
 
   3: {
@@ -138,15 +212,34 @@ let FDSelect = new r.VersionedStruct(r.uint8, {
 
 let ptr = new CFFPointer(CFFPrivateDict);
 class CFFPrivateOp {
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue} parent
+   * @param {number[]} operands
+   * @returns {unknown}
+   */
   decode(stream, parent, operands) {
     parent.length = operands[0];
     return ptr.decode(stream, parent, [operands[1]]);
   }
 
+  /**
+   * Size operands match encode(null, …): [privateDictByteLength, pointerOperand].
+   * @param {StructValue} dict
+   * @param {CFFEncodeContext | StructValue} ctx
+   * @returns {unknown[]}
+   */
   size(dict, ctx) {
-    return [CFFPrivateDict.size(dict, ctx, false), ptr.size(dict, ctx)[0]];
+    // Delegate to encode(null) so pointerSize is updated and operands match.
+    return this.encode(null, dict, ctx);
   }
 
+  /**
+   * @param {EncodeStream | null} stream
+   * @param {StructValue} dict
+   * @param {CFFEncodeContext | StructValue} ctx
+   * @returns {unknown[]}
+   */
   encode(stream, dict, ctx) {
     return [CFFPrivateDict.size(dict, ctx, false), ptr.encode(stream, dict, ctx)[0]];
   }

@@ -1,6 +1,68 @@
 import * as r from 'restructure';
 import TTFFont from './TTFFont';
 
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('restructure').BinaryBuffer} BinaryBuffer */
+/** @typedef {import('../types/fontkit').NameString} NameString */
+
+/**
+ * @param {NameString | null | undefined} a
+ * @param {string | Uint8Array} b
+ * @returns {boolean}
+ */
+function postscriptNamesEqual(a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (a instanceof Uint8Array && b instanceof Uint8Array) {
+    return a.length === b.length && a.every((v, i) => b[i] === v);
+  }
+  return false;
+}
+
+/**
+ * @typedef {StructValue & {
+ *   id: number,
+ *   nameOffset: number,
+ *   attr: number,
+ *   dataOffset: number,
+ *   handle: number,
+ *   name?: string | null
+ * }} DFontRef
+ */
+
+/**
+ * @typedef {StructValue & {
+ *   name: string,
+ *   maxTypeIndex: number,
+ *   refList: DFontRef[]
+ * }} DFontType
+ */
+
+/**
+ * @typedef {StructValue & {
+ *   length: number,
+ *   types: DFontType[]
+ * }} DFontTypeList
+ */
+
+/**
+ * @typedef {StructValue & {
+ *   typeList: DFontTypeList,
+ *   nameListOffset: number
+ * }} DFontMap
+ */
+
+/**
+ * @typedef {StructValue & {
+ *   dataOffset: number,
+ *   map: DFontMap,
+ *   dataLength: number,
+ *   mapLength: number
+ * }} DFontHeaderValue
+ */
+
 let DFontName = new r.String(r.uint8);
 
 let Ref = new r.Struct({
@@ -14,12 +76,16 @@ let Ref = new r.Struct({
 let Type = new r.Struct({
   name: new r.String(4),
   maxTypeIndex: r.uint16,
-  refList: new r.Pointer(r.uint16, new r.Array(Ref, t => t.maxTypeIndex + 1), { type: 'parent' })
+  refList: new r.Pointer(
+    r.uint16,
+    new r.Array(Ref, t => /** @type {DFontType} */ (t).maxTypeIndex + 1),
+    { type: 'parent' }
+  )
 });
 
 let TypeList = new r.Struct({
   length: r.uint16,
-  types: new r.Array(Type, t => t.length + 1)
+  types: new r.Array(Type, t => /** @type {DFontTypeList} */ (t).length + 1)
 });
 
 let DFontMap = new r.Struct({
@@ -36,13 +102,27 @@ let DFontHeader = new r.Struct({
 });
 
 export default class DFont {
+  /** @type {string} */
   type = 'DFont';
 
+  /** @type {DecodeStream} */
+  stream;
+  /** @type {DFontHeaderValue} */
+  header;
+  /** @type {DFontType | undefined} */
+  sfnt;
+
+  /**
+   * @param {BinaryBuffer | Uint8Array} buffer
+   * @returns {boolean}
+   */
   static probe(buffer) {
     let stream = new r.DecodeStream(buffer);
 
     try {
-      var header = DFontHeader.decode(stream);
+      var header = /** @type {DFontHeaderValue} */ (
+        /** @type {unknown} */ (DFontHeader.decode(stream))
+      );
     } catch (e) {
       return false;
     }
@@ -56,9 +136,14 @@ export default class DFont {
     return false;
   }
 
+  /**
+   * @param {DecodeStream} stream
+   */
   constructor(stream) {
     this.stream = stream;
-    this.header = DFontHeader.decode(this.stream);
+    this.header = /** @type {DFontHeaderValue} */ (
+      /** @type {unknown} */ (DFontHeader.decode(this.stream))
+    );
 
     for (let type of this.header.map.typeList.types) {
       for (let ref of type.refList) {
@@ -76,6 +161,10 @@ export default class DFont {
     }
   }
 
+  /**
+   * @param {string | Uint8Array} name
+   * @returns {TTFFont | null}
+   */
   getFont(name) {
     if (!this.sfnt) {
       return null;
@@ -83,16 +172,14 @@ export default class DFont {
 
     for (let ref of this.sfnt.refList) {
       let pos = this.header.dataOffset + ref.dataOffset + 4;
-      let stream = new r.DecodeStream(this.stream.buffer.slice(pos));
+      let buf = this.stream.buffer;
+      let bytes
+        = buf instanceof Uint8Array
+          ? buf
+          : new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+      let stream = new r.DecodeStream(bytes.subarray(pos));
       let font = new TTFFont(stream);
-      if (
-        font.postscriptName === name
-        || (
-          font.postscriptName instanceof Uint8Array
-          && name instanceof Uint8Array
-          && font.postscriptName.every((v, i) => name[i] === v)
-        )
-      ) {
+      if (postscriptNamesEqual(font.postscriptName, name)) {
         return font;
       }
     }
@@ -100,11 +187,24 @@ export default class DFont {
     return null;
   }
 
+  /**
+   * @type {TTFFont[]}
+   */
   get fonts() {
+    /** @type {TTFFont[]} */
     let fonts = [];
+    if (!this.sfnt) {
+      return fonts;
+    }
+
     for (let ref of this.sfnt.refList) {
       let pos = this.header.dataOffset + ref.dataOffset + 4;
-      let stream = new r.DecodeStream(this.stream.buffer.slice(pos));
+      let buf = this.stream.buffer;
+      let bytes
+        = buf instanceof Uint8Array
+          ? buf
+          : new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+      let stream = new r.DecodeStream(bytes.subarray(pos));
       fonts.push(new TTFFont(stream));
     }
 

@@ -1,5 +1,10 @@
 import { getCombiningClass } from '../packages/unicode-properties/index.js';
 
+/** @typedef {import('../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../types/fontkit').LayoutGlyph} LayoutGlyph */
+/** @typedef {import('../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+/** @typedef {import('../../types/fontkit').GlyphPositionLike} GlyphPositionLike */
+
 /**
  * This class is used when GPOS does not define 'mark' or 'mkmk' features
  * for positioning marks relative to base glyphs. It uses the unicode
@@ -9,10 +14,19 @@ import { getCombiningClass } from '../packages/unicode-properties/index.js';
  * https://github.com/behdad/harfbuzz/blob/master/src/hb-ot-shape-fallback.cc
  */
 export default class UnicodeLayoutEngine {
+  /**
+   * @param {LayoutFont} font
+   */
   constructor(font) {
+    /** @type {LayoutFont} */
     this.font = font;
   }
 
+  /**
+   * @param {Array<LayoutGlyph | GlyphInfoLike & { cbox?: import('../../types/fontkit').BBoxLike }>} glyphs
+   * @param {GlyphPositionLike[]} positions
+   * @returns {GlyphPositionLike[]}
+   */
   positionGlyphs(glyphs, positions) {
     // find each base + mark cluster, and position the marks relative to the base
     let clusterStart = 0;
@@ -37,9 +51,16 @@ export default class UnicodeLayoutEngine {
     return positions;
   }
 
+  /**
+   * @param {Array<LayoutGlyph | (GlyphInfoLike & { cbox?: import('../../types/fontkit').BBoxLike, advanceWidth?: number })>} glyphs
+   * @param {GlyphPositionLike[]} positions
+   * @param {number} clusterStart
+   * @param {number} clusterEnd
+   * @returns {void}
+   */
   positionCluster(glyphs, positions, clusterStart, clusterEnd) {
-    let base = glyphs[clusterStart];
-    let baseBox = base.cbox.copy();
+    let base = /** @type {LayoutGlyph} */ (glyphs[clusterStart]);
+    let baseBox = /** @type {import('../../types/fontkit').BBoxLike} */ (base.cbox).copy();
 
     // adjust bounding box for ligature glyphs
     if (base.codePoints.length > 1) {
@@ -53,8 +74,8 @@ export default class UnicodeLayoutEngine {
 
     // position each of the mark glyphs relative to the base glyph
     for (let index = clusterStart + 1; index <= clusterEnd; index++) {
-      let mark = glyphs[index];
-      let markBox = mark.cbox;
+      let mark = /** @type {LayoutGlyph} */ (glyphs[index]);
+      let markBox = /** @type {import('../../types/fontkit').BBoxLike} */ (mark.cbox);
       let position = positions[index];
 
       let combiningClass = this.getCombiningClass(mark.codePoints[0]);
@@ -134,6 +155,10 @@ export default class UnicodeLayoutEngine {
     return;
   }
 
+  /**
+   * @param {number} codePoint
+   * @returns {string}
+   */
   getCombiningClass(codePoint) {
     let combiningClass = getCombiningClass(codePoint);
 

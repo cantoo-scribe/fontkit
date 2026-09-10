@@ -1,6 +1,7 @@
 import * as r from 'restructure';
 
 // horizontal header
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.int32,
   ascent: r.int16, // Distance from baseline of highest ascender

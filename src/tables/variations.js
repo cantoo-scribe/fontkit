@@ -1,6 +1,8 @@
 import { Feature } from './opentype';
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 /** *****************
  * Variation Store *
  *******************/
@@ -19,9 +21,25 @@ let VariationRegionList = new r.Struct({
 });
 
 let DeltaSet = new r.Struct({
-  shortDeltas: new r.Array(r.int16, t => t.parent.shortDeltaCount),
-  regionDeltas: new r.Array(r.int8, t => t.parent.regionIndexCount - t.parent.shortDeltaCount),
-  deltas: t => t.shortDeltas.concat(t.regionDeltas)
+  shortDeltas: new r.Array(
+    r.int16,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (/** @type {StructValue} */ (t.parent).shortDeltaCount)
+  ),
+  regionDeltas: new r.Array(
+    r.int8,
+    /** @param {StructValue} t @returns {number} */
+    (t) => {
+      let parent = /** @type {StructValue} */ (t.parent);
+      return /** @type {number} */ (parent.regionIndexCount)
+        - /** @type {number} */ (parent.shortDeltaCount);
+    }
+  ),
+  /**
+   * @param {StructValue} t
+   * @returns {number[]}
+   */
+  deltas: t => /** @type {number[]} */ (t.shortDeltas).concat(/** @type {number[]} */ (t.regionDeltas))
 });
 
 let ItemVariationData = new r.Struct({
@@ -32,6 +50,7 @@ let ItemVariationData = new r.Struct({
   deltaSets: new r.Array(DeltaSet, 'itemCount')
 });
 
+/** @type {import('restructure').Struct} */
 export let ItemVariationStore = new r.Struct({
   format: r.uint16,
   variationRegionList: new r.Pointer(r.uint32, VariationRegionList),
@@ -72,6 +91,7 @@ let FeatureVariationRecord = new r.Struct({
   featureTableSubstitution: new r.Pointer(r.uint32, FeatureTableSubstitution, { type: 'parent' })
 });
 
+/** @type {import('restructure').Struct} */
 export let FeatureVariations = new r.Struct({
   majorVersion: r.uint16,
   minorVersion: r.uint16,

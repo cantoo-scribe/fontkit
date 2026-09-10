@@ -1,9 +1,19 @@
 import Glyph from './Glyph';
 import BBox from './BBox';
 
+/** @typedef {import('../../types/fontkit').CPALColor} CPALColor */
+/** @typedef {import('../../types/fontkit').GlyphLike} GlyphLike */
+/** @typedef {import('../../types/fontkit').PathRenderingContext} PathRenderingContext */
+
 class COLRLayer {
+  /**
+   * @param {GlyphLike | null | undefined} glyph
+   * @param {CPALColor} color
+   */
   constructor(glyph, color) {
+    /** @type {GlyphLike | null | undefined} */
     this.glyph = glyph;
+    /** @type {CPALColor} */
     this.color = color;
   }
 }
@@ -16,16 +26,22 @@ class COLRLayer {
 export default class COLRGlyph extends Glyph {
   type = 'COLR';
 
+  /**
+   * @returns {BBox}
+   */
   _getBBox() {
     let layers = this.layers;
     if (!layers) {
       let g = this._font._getBaseGlyph(this.id);
-      return g ? g.bbox : new BBox(0, 0, 0, 0);
+      return g ? new BBox(g.bbox.minX, g.bbox.minY, g.bbox.maxX, g.bbox.maxY) : new BBox(0, 0, 0, 0);
     }
 
     let bbox = new BBox();
     for (let i = 0; i < layers.length; i++) {
       let layer = layers[i];
+      if (!layer.glyph) {
+        continue;
+      }
       let b = layer.glyph.bbox;
       bbox.addPoint(b.minX, b.minY);
       bbox.addPoint(b.maxX, b.maxY);
@@ -37,7 +53,7 @@ export default class COLRGlyph extends Glyph {
   /**
    * Returns an array of objects containing the glyph and color for
    * each layer in the composite color glyph.
-   * @type {object[]}
+   * @type {COLRLayer[] | null}
    */
   get layers() {
     let cpal = this._font.CPAL;
@@ -50,6 +66,7 @@ export default class COLRGlyph extends Glyph {
 
     let low = 0;
     let high = colr.baseGlyphRecord.length - 1;
+    /** @type {import('../../types/fontkit').COLRBaseGlyphRecord | undefined} */
     let baseLayer;
 
     while (low <= high) {
@@ -70,6 +87,7 @@ export default class COLRGlyph extends Glyph {
     // default to normal glyph from glyf or CFF
     if (baseLayer == null) {
       let g = this._font._getBaseGlyph(this.id);
+      /** @type {CPALColor} */
       let color = {
         red: 0,
         green: 0,
@@ -81,10 +99,17 @@ export default class COLRGlyph extends Glyph {
     }
 
     // otherwise, return an array of all the layers
+    /** @type {COLRLayer[]} */
     let layers = [];
     for (let i = baseLayer.firstLayerIndex; i < baseLayer.firstLayerIndex + baseLayer.numLayers; i++) {
       let rec = colr.layerRecords[i];
+      if (!cpal || !rec) {
+        continue;
+      }
       let color = cpal.colorRecords[rec.paletteIndex];
+      if (!color) {
+        continue;
+      }
       let g = this._font._getBaseGlyph(rec.gid);
       layers.push(new COLRLayer(g, color));
     }
@@ -92,6 +117,11 @@ export default class COLRGlyph extends Glyph {
     return layers;
   }
 
+  /**
+   * @param {PathRenderingContext} ctx
+   * @param {number} size
+   * @returns {void}
+   */
   render(ctx, size) {
     let layers = this.layers;
     if (!layers) {
@@ -99,7 +129,12 @@ export default class COLRGlyph extends Glyph {
     }
 
     for (let { glyph, color } of layers) {
-      ctx.fillColor([color.red, color.green, color.blue], color.alpha / 255 * 100);
+      if (!glyph) {
+        continue;
+      }
+      if (typeof ctx.fillColor === 'function') {
+        ctx.fillColor([color.red, color.green, color.blue], color.alpha / 255 * 100);
+      }
       glyph.render(ctx, size);
     }
 

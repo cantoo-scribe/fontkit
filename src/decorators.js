@@ -1,7 +1,12 @@
 /**
- * This decorator caches the results of a getter or method such that
- * the results are lazily computed once, and then cached.
- * @private
+ * Cache decorator for getters/methods.
+ * Results are lazily computed once, then cached on the instance.
+ *
+ * @template T
+ * @param {object} target
+ * @param {string} key
+ * @param {TypedPropertyDescriptor<T>} descriptor
+ * @returns {TypedPropertyDescriptor<T> | void}
  */
 export function cache(target, key, descriptor) {
   if (descriptor.get) {
@@ -11,26 +16,40 @@ export function cache(target, key, descriptor) {
       Object.defineProperty(this, key, { value });
       return value;
     };
-  } else if (typeof descriptor.value === 'function') {
-    let fn = descriptor.value;
+    return;
+  }
 
-    return {
+  if (typeof descriptor.value === 'function') {
+    let fn = /** @type {(...args: unknown[]) => T} */ (descriptor.value);
+
+    /** @type {TypedPropertyDescriptor<T>} */
+    let replacement = {
+      configurable: true,
+      enumerable: false,
       get() {
-        let cache = new Map();
-        function memoized(...args) {
-          let key = args.length > 0 ? args[0] : 'value';
-          if (cache.has(key)) {
-            return cache.get(key);
+        /** @type {Map<unknown, T>} */
+        let cacheMap = new Map();
+
+        /**
+         * @param {...unknown} args
+         * @returns {T}
+         */
+        let memoized = (...args) => {
+          let cacheKey = args.length > 0 ? args[0] : 'value';
+          if (cacheMap.has(cacheKey)) {
+            return /** @type {T} */ (cacheMap.get(cacheKey));
           }
 
           let result = fn.apply(this, args);
-          cache.set(key, result);
+          cacheMap.set(cacheKey, result);
           return result;
         };
 
         Object.defineProperty(this, key, { value: memoized });
-        return memoized;
+        return /** @type {T} */ (/** @type {unknown} */ (memoized));
       }
     };
+
+    return replacement;
   }
 }

@@ -1,5 +1,7 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let KernPair = new r.Struct({
   left: r.uint16,
   right: r.uint16,
@@ -10,12 +12,34 @@ let ClassTable = new r.Struct({
   firstGlyph: r.uint16,
   nGlyphs: r.uint16,
   offsets: new r.Array(r.uint16, 'nGlyphs'),
-  max: t => t.offsets.length && Math.max.apply(Math, t.offsets)
+  /**
+   * @param {StructValue} t
+   * @returns {number}
+   */
+  max: (t) => {
+    let offsets = /** @type {number[]} */ (t.offsets);
+    return offsets.length ? Math.max.apply(Math, offsets) : 0;
+  }
 });
 
 let Kern2Array = new r.Struct({
-  off: t => t._startOffset - t.parent.parent._startOffset,
-  len: t => (((t.parent.leftTable.max - t.off) / t.parent.rowWidth) + 1) * (t.parent.rowWidth / 2),
+  /**
+   * @param {StructValue} t
+   * @returns {number}
+   */
+  off: t => /** @type {number} */ (t._startOffset)
+    - /** @type {number} */ (/** @type {StructValue} */ (/** @type {StructValue} */ (t.parent).parent)._startOffset),
+  /**
+   * @param {StructValue} t
+   * @returns {number}
+   */
+  len: (t) => {
+    let parent = /** @type {StructValue} */ (t.parent);
+    let leftTable = /** @type {StructValue} */ (parent.leftTable);
+    let rowWidth = /** @type {number} */ (parent.rowWidth);
+    let off = /** @type {number} */ (t.off);
+    return (((/** @type {number} */ (leftTable.max) - off) / rowWidth) + 1) * (rowWidth / 2);
+  },
   values: new r.LazyArray(r.int16, 'len')
 });
 
@@ -44,7 +68,11 @@ let KernSubtable = new r.VersionedStruct('format', {
     kernValue: new r.Array(r.int16, 'kernValueCount'),
     leftClass: new r.Array(r.uint8, 'glyphCount'),
     rightClass: new r.Array(r.uint8, 'glyphCount'),
-    kernIndex: new r.Array(r.uint8, t => t.leftClassCount * t.rightClassCount)
+    kernIndex: new r.Array(
+      r.uint8,
+      /** @param {StructValue} t @returns {number} */
+      t => /** @type {number} */ (t.leftClassCount) * /** @type {number} */ (t.rightClassCount)
+    )
   }
 });
 
@@ -60,7 +88,11 @@ let KernTable = new r.VersionedStruct('version', {
       'override' // If set to 1 the value in this table replaces the accumulated value
     ]),
     subtable: KernSubtable,
-    padding: new r.Reserved(r.uint8, t => t.length - t._currentOffset)
+    padding: new r.Reserved(
+      r.uint8,
+      /** @param {StructValue} t @returns {number} */
+      t => /** @type {number} */ (t.length) - /** @type {number} */ (t._currentOffset)
+    )
   },
   1: { // Apple uses this format
     length: r.uint32,
@@ -73,10 +105,15 @@ let KernTable = new r.VersionedStruct('version', {
     format: r.uint8,
     tupleIndex: r.uint16,
     subtable: KernSubtable,
-    padding: new r.Reserved(r.uint8, t => t.length - t._currentOffset)
+    padding: new r.Reserved(
+      r.uint8,
+      /** @param {StructValue} t @returns {number} */
+      t => /** @type {number} */ (t.length) - /** @type {number} */ (t._currentOffset)
+    )
   }
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint16, {
   0: { // Microsoft Version
     nTables: r.uint16,

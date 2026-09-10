@@ -12,6 +12,7 @@ let SignatureBlock = new r.Struct({
   signature: new r.Buffer('cbSignature')
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   ulVersion: r.uint32, // Version number of the DSIG table (0x00000001)
   usNumSigs: r.uint16, // Number of signatures in the table

@@ -1,6 +1,7 @@
 import * as r from 'restructure';
 
 // font header
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.int32, // 0x00010000 (version 1.0)
   revision: r.int32, // set by font manufacturer

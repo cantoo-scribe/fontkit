@@ -12,6 +12,7 @@ let Segment = new r.Struct({
   correspondence: new r.Array(Correspondence, 'pairCount')
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.fixed32,
   axisCount: r.uint32,

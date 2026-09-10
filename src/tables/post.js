@@ -1,6 +1,9 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 // PostScript information
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.fixed32, {
   header: { // these fields exist at the top of all versions
     italicAngle: r.fixed32, // Italic angle in counter-clockwise degrees from the vertical.
@@ -29,6 +32,10 @@ export default new r.VersionedStruct(r.fixed32, {
   3: {}, // version 3 has no additional fields
 
   4: {
-    map: new r.Array(r.uint32, t => t.parent.maxp.numGlyphs)
+    map: new r.Array(
+      r.uint32,
+      /** @param {StructValue} t @returns {number} */
+      t => /** @type {number} */ (/** @type {StructValue} */ (/** @type {StructValue} */ (t.parent).maxp).numGlyphs)
+    )
   }
 });

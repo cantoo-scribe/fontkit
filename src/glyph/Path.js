@@ -1,5 +1,9 @@
 import BBox from './BBox';
 
+/** @typedef {import('../../types/fontkit').PathCommand} PathCommand */
+/** @typedef {import('../../types/fontkit').PathRenderingContext} PathRenderingContext */
+
+/** @type {Record<PathCommand['command'], string>} */
 const SVG_COMMANDS = {
   moveTo: 'M',
   lineTo: 'L',
@@ -16,20 +20,93 @@ const SVG_COMMANDS = {
  */
 export default class Path {
   constructor() {
+    /** @type {PathCommand[]} */
     this.commands = [];
+    /** @type {BBox | null} */
     this._bbox = null;
+    /** @type {BBox | null} */
     this._cbox = null;
+  }
+
+  /**
+   * @param {PathCommand['command']} command
+   * @param {...number} args
+   * @returns {this}
+   */
+  _addCommand(command, ...args) {
+    this._bbox = this._cbox = null;
+    this.commands.push({
+      command,
+      args
+    });
+    return this;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {this}
+   */
+  moveTo(x, y) {
+    return this._addCommand('moveTo', x, y);
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {this}
+   */
+  lineTo(x, y) {
+    return this._addCommand('lineTo', x, y);
+  }
+
+  /**
+   * @param {number} cpx
+   * @param {number} cpy
+   * @param {number} x
+   * @param {number} y
+   * @returns {this}
+   */
+  quadraticCurveTo(cpx, cpy, x, y) {
+    return this._addCommand('quadraticCurveTo', cpx, cpy, x, y);
+  }
+
+  /**
+   * @param {number} cp1x
+   * @param {number} cp1y
+   * @param {number} cp2x
+   * @param {number} cp2y
+   * @param {number} x
+   * @param {number} y
+   * @returns {this}
+   */
+  bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+    return this._addCommand('bezierCurveTo', cp1x, cp1y, cp2x, cp2y, x, y);
+  }
+
+  /**
+   * @returns {this}
+   */
+  closePath() {
+    return this._addCommand('closePath');
   }
 
   /**
    * Compiles the path to a JavaScript function that can be applied with
    * a graphics context in order to render the path.
-   * @return {string}
+   * @return {(ctx: PathRenderingContext) => void}
    */
   toFunction() {
+    /**
+     * @param {PathRenderingContext} ctx
+     * @returns {void}
+     */
     return (ctx) => {
       this.commands.forEach((c) => {
-        return ctx[c.command].apply(ctx, c.args);
+        const fn = ctx[c.command];
+        if (typeof fn === 'function') {
+          Reflect.apply(fn, ctx, c.args);
+        }
       });
     };
   }
@@ -40,7 +117,7 @@ export default class Path {
    */
   toSVG() {
     let cmds = this.commands.map((c) => {
-      let args = c.args.map(arg => Math.round(arg * 100) / 100);
+      let args = c.args.map(/** @param {number} arg */ arg => Math.round(arg * 100) / 100);
       return `${SVG_COMMANDS[c.command]}${args.join(' ')}`;
     });
 
@@ -125,6 +202,11 @@ export default class Path {
           let p2 = [cp2x, cp2y];
           let p3 = [p3x, p3y];
 
+          /**
+           * @param {number} t
+           * @param {number} i
+           * @returns {number}
+           */
           let f = (t, i) => (
             Math.pow(1 - t, 3) * p0[i]
             + 3 * Math.pow(1 - t, 2) * t * p1[i]
@@ -135,14 +217,16 @@ export default class Path {
           for (let i = 0; i <= 1; i++) {
             let b = 6 * p0[i] - 12 * p1[i] + 6 * p2[i];
             let a = -3 * p0[i] + 9 * p1[i] - 9 * p2[i] + 3 * p3[i];
-            c = 3 * p1[i] - 3 * p0[i];
+            // Renamed from `c` — reassigning the PathCommand loop variable to a number
+            // would corrupt subsequent iterations / confuse the type checker.
+            let coeff = 3 * p1[i] - 3 * p0[i];
 
             if (a === 0) {
               if (b === 0) {
                 continue;
               }
 
-              let t = -c / b;
+              let t = -coeff / b;
               if (0 < t && t < 1) {
                 if (i === 0) {
                   bbox.addPoint(f(t, i), bbox.maxY);
@@ -154,7 +238,7 @@ export default class Path {
               continue;
             }
 
-            let b2ac = Math.pow(b, 2) - 4 * c * a;
+            let b2ac = Math.pow(b, 2) - 4 * coeff * a;
             if (b2ac < 0) {
               continue;
             }
@@ -190,7 +274,7 @@ export default class Path {
 
   /**
    * Applies a mapping function to each point in the path.
-   * @param {function} fn
+   * @param {(x: number, y: number) => [number, number]} fn
    * @return {Path}
    */
   mapPoints(fn) {
@@ -203,7 +287,7 @@ export default class Path {
         args.push(x, y);
       }
 
-      path[c.command](...args);
+      path._addCommand(c.command, ...args);
     }
 
     return path;
@@ -211,6 +295,13 @@ export default class Path {
 
   /**
    * Transforms the path by the given matrix.
+   * @param {number} m0
+   * @param {number} m1
+   * @param {number} m2
+   * @param {number} m3
+   * @param {number} m4
+   * @param {number} m5
+   * @returns {Path}
    */
   transform(m0, m1, m2, m3, m4, m5) {
     return this.mapPoints((x, y) => {
@@ -222,6 +313,9 @@ export default class Path {
 
   /**
    * Translates the path by the given offset.
+   * @param {number} x
+   * @param {number} y
+   * @returns {Path}
    */
   translate(x, y) {
     return this.transform(1, 0, 0, 1, x, y);
@@ -229,6 +323,8 @@ export default class Path {
 
   /**
    * Rotates the path by the given angle (in radians).
+   * @param {number} angle
+   * @returns {Path}
    */
   rotate(angle) {
     let cos = Math.cos(angle);
@@ -238,20 +334,11 @@ export default class Path {
 
   /**
    * Scales the path.
+   * @param {number} scaleX
+   * @param {number} [scaleY]
+   * @returns {Path}
    */
   scale(scaleX, scaleY = scaleX) {
     return this.transform(scaleX, 0, 0, scaleY, 0, 0);
   }
-}
-
-for (let command of ['moveTo', 'lineTo', 'quadraticCurveTo', 'bezierCurveTo', 'closePath']) {
-  Path.prototype[command] = function (...args) {
-    this._bbox = this._cbox = null;
-    this.commands.push({
-      command,
-      args
-    });
-
-    return this;
-  };
 }

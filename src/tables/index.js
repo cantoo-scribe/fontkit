@@ -1,3 +1,4 @@
+/** @type {Record<string, import('../../types/fontkit').TableCodec>} */
 let tables = {};
 export default tables;
 

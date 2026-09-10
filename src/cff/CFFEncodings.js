@@ -1,3 +1,4 @@
+/** @type {string[]} */
 export let StandardEncoding = [
   '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
   '', '', '', '', 'space', 'exclam', 'quotedbl', 'numbersign', 'dollar', 'percent', 'ampersand', 'quoteright',
@@ -18,6 +19,7 @@ export let StandardEncoding = [
   'lslash', 'oslash', 'oe', 'germandbls'
 ];
 
+/** @type {string[]} */
 export let ExpertEncoding = [
   '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
   '', '', '', '', 'space', 'exclamsmall', 'Hungarumlautsmall', '', 'dollaroldstyle', 'dollarsuperior',

@@ -4,6 +4,9 @@ import UnicodeTrie from '../../packages/unicode-trie/index.js';
 import { decodeBase64 } from '../../utils';
 import dataTrie from './data.trie';
 
+/** @typedef {import('../../../types/fontkit').ShapingPlanLike} ShapingPlanLike */
+/** @typedef {import('../../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+
 const trie = new UnicodeTrie(decodeBase64(dataTrie));
 const FEATURES = ['isol', 'fina', 'fin2', 'fin3', 'medi', 'med2', 'init'];
 
@@ -25,9 +28,13 @@ const FIN3 = 'fin3';
 const MEDI = 'medi';
 const MED2 = 'med2';
 const INIT = 'init';
+/** @type {null} */
 const NONE = null;
 
+/** @typedef {[string | null, string | null, number]} ArabicStateTransition */
+
 // Each entry is [prevAction, curAction, nextState]
+/** @type {ArabicStateTransition[][]} */
 const STATE_TABLE = [
   //   Non_Joining,        Left_Joining,       Right_Joining,     Dual_Joining,           ALAPH,            DALATH RISH
   // State 0: prev was U,  not willing to join.
@@ -61,6 +68,9 @@ const STATE_TABLE = [
  * https://github.com/behdad/harfbuzz/blob/master/src/hb-ot-shape-complex-arabic.cc
  */
 export default class ArabicShaper extends DefaultShaper {
+  /**
+   * @param {ShapingPlanLike} plan
+   */
   static planFeatures(plan) {
     plan.add(['ccmp', 'locl']);
     for (let i = 0; i < FEATURES.length; i++) {
@@ -71,11 +81,16 @@ export default class ArabicShaper extends DefaultShaper {
     plan.addStage('mset');
   }
 
+  /**
+   * @param {ShapingPlanLike} plan
+   * @param {GlyphInfoLike[]} glyphs
+   */
   static assignFeatures(plan, glyphs) {
     super.assignFeatures(plan, glyphs);
 
     let prev = -1;
     let state = 0;
+    /** @type {Array<string | null | undefined>} */
     let actions = [];
 
     // Apply the state machine to map glyphs to features
@@ -109,6 +124,10 @@ export default class ArabicShaper extends DefaultShaper {
   }
 }
 
+/**
+ * @param {number} codePoint
+ * @returns {number}
+ */
 function getShapingClass(codePoint) {
   let res = trie.get(codePoint);
   if (res) {

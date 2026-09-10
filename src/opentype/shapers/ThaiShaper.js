@@ -1,12 +1,24 @@
 import DefaultShaper from './DefaultShaper';
 import GlyphInfo from '../GlyphInfo';
 
+/** @typedef {import('../../../types/fontkit').ShapingPlanLike} ShapingPlanLike */
+/** @typedef {import('../../../types/fontkit').GlyphInfoLike} GlyphInfoLike */
+/** @typedef {import('../../../types/fontkit').LayoutFont} LayoutFont */
+/** @typedef {import('../../../types/fontkit').FeatureMap} FeatureMap */
+/** @typedef {import('../../../types/fontkit').FeatureInput} FeatureInput */
+/** @typedef {import('../../../types/fontkit').ScriptTag} ScriptTag */
+/** @typedef {import('../../../types/fontkit').OTScriptRecord} OTScriptRecord */
+
 /**
  * Thai / Lao shaper (HarfBuzz hb-ot-shaper-thai.cc):
  *   1. Decompose SARA AM → NIKHAHIT + SARA AA and reorder NIKHAHIT past above marks
  *   2. PUA tone/vowel shift fallback for legacy fonts without Thai GSUB
  */
 export default class ThaiShaper extends DefaultShaper {
+  /**
+   * @param {ShapingPlanLike} plan
+   * @param {GlyphInfoLike[]} glyphs
+   */
   static assignFeatures(plan, glyphs) {
     super.assignFeatures(plan, glyphs);
     preprocessThai(glyphs, plan.font);
@@ -18,19 +30,23 @@ export default class ThaiShaper extends DefaultShaper {
 }
 
 // Thai/Lao SARA AM differ only by the 0x80 bit (U+0E33 / U+0EB3).
+/** @param {number} u @returns {boolean} */
 function isSaraAm(u) {
   return (u & ~0x0080) === 0x0E33;
 }
 
+/** @param {number} u @returns {number} */
 function nikhahitFromSaraAm(u) {
   return u - 0x0E33 + 0x0E4D;
 }
 
+/** @param {number} u @returns {number} */
 function saraAaFromSaraAm(u) {
   return u - 1;
 }
 
 // Above-base marks (Thai; Lao is the same set with +0x80).
+/** @param {number} u @returns {boolean} */
 function isAboveBaseMark(u) {
   const c = u & ~0x0080;
   return c === 0x0E31
@@ -39,6 +55,7 @@ function isAboveBaseMark(u) {
     || c === 0x0E3B;
 }
 
+/** @param {GlyphInfoLike[]} glyphs @param {LayoutFont} font */
 function preprocessThai(glyphs, font) {
   let i = 0;
   while (i < glyphs.length) {
@@ -68,9 +85,11 @@ function preprocessThai(glyphs, font) {
   }
 }
 
+/** @param {LayoutFont} font @param {number} codePoint @param {FeatureMap | FeatureInput | null | undefined} features @returns {GlyphInfo} */
 function makeGlyph(font, codePoint, features) {
-  const id = font.glyphForCodePoint(codePoint).id;
-  return new GlyphInfo(font, id, [codePoint], features);
+  const g = font.glyphForCodePoint(codePoint);
+  // .notdef when the mapped code point is somehow missing from the font.
+  return new GlyphInfo(font, g ? g.id : 0, [codePoint], features);
 }
 
 // PUA fallback: above/below state machines remap marks (and some bases) to
@@ -92,6 +111,7 @@ const BV = 1; // below-base vowel/mark
 const T = 2; // tone mark
 const NOT_MARK = 3;
 
+/** @param {number} u @returns {number} */
 function getConsonantType(u) {
   if (u === 0x0E1B || u === 0x0E1D || u === 0x0E1F) return AC;
   if (u === 0x0E0D || u === 0x0E10) return RC;
@@ -100,6 +120,7 @@ function getConsonantType(u) {
   return NOT_CONSONANT;
 }
 
+/** @param {number} u @returns {number} */
 function getMarkType(u) {
   if (
     u === 0x0E31
@@ -116,6 +137,7 @@ function getMarkType(u) {
 
 const T0 = 0, T1 = 1, T2 = 2, T3 = 3;
 const ABOVE_START_STATE = [T0, T1, T0, T0, T3]; // NC AC RC DC NOT_CONSONANT
+/** @type {[number, number][][]} */
 const ABOVE_STATE_MACHINE = [
   // AV          BV          T
   [[NOP, T3], [NOP, T0], [SD, T3]], // T0
@@ -126,6 +148,7 @@ const ABOVE_STATE_MACHINE = [
 
 const B0 = 0, B1 = 1, B2 = 2;
 const BELOW_START_STATE = [B0, B0, B1, B2, B2];
+/** @type {[number, number][][]} */
 const BELOW_STATE_MACHINE = [
   // AV          BV          T
   [[NOP, B0], [NOP, B2], [NOP, B0]], // B0
@@ -134,6 +157,7 @@ const BELOW_STATE_MACHINE = [
 ];
 
 // [original, Windows PUA, Mac PUA] per action
+/** @type {Record<number, number[][]>} */
 const PUA_MAPPINGS = {
   [SD]: [
     [0x0E48, 0xF70A, 0xF88B], // MAI EK
@@ -172,6 +196,7 @@ const PUA_MAPPINGS = {
   ]
 };
 
+/** @param {number} u @param {number} action @param {LayoutFont} font @returns {number} */
 function thaiPuaShape(u, action, font) {
   if (action === NOP) return u;
   const mappings = PUA_MAPPINGS[action];
@@ -185,12 +210,16 @@ function thaiPuaShape(u, action, font) {
   return u;
 }
 
+/** @param {GlyphInfoLike[]} glyphs @param {number} index @param {number} newCp @param {LayoutFont} font */
 function replaceGlyphCodePoint(glyphs, index, newCp, font) {
   const prev = glyphs[index];
   if (prev.codePoints[0] === newCp) return;
-  glyphs[index] = new GlyphInfo(font, font.glyphForCodePoint(newCp).id, [newCp], prev.features);
+  const g = font.glyphForCodePoint(newCp);
+  if (!g) return;
+  glyphs[index] = new GlyphInfo(font, g.id, [newCp], prev.features);
 }
 
+/** @param {GlyphInfoLike[]} glyphs @param {LayoutFont} font */
 function applyThaiPuaShaping(glyphs, font) {
   let aboveState = ABOVE_START_STATE[NOT_CONSONANT];
   let belowState = BELOW_START_STATE[NOT_CONSONANT];
@@ -226,12 +255,14 @@ function applyThaiPuaShaping(glyphs, font) {
 }
 
 // Gate PUA shaping on absence of Thai GSUB (HB plan->map.found_script[0]).
+/** @param {LayoutFont} font @returns {boolean} */
 function hasThaiGsub(font) {
   const gsub = font.GSUB;
   if (!gsub || !gsub.scriptList) return false;
-  return gsub.scriptList.some(entry => entry.tag === 'thai' || entry.tag === 'tha2');
+  return gsub.scriptList.some(/** @param {OTScriptRecord} entry */ entry => entry.tag === 'thai' || entry.tag === 'tha2');
 }
 
+/** @param {ScriptTag | string[] | null | undefined} script @returns {boolean} */
 function isThaiBufferScript(script) {
   if (Array.isArray(script)) return script.includes('thai');
   return script === 'thai';

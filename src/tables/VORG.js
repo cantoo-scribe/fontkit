@@ -5,6 +5,7 @@ let VerticalOrigin = new r.Struct({
   vertOriginY: r.int16
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   majorVersion: r.uint16,
   minorVersion: r.uint16,

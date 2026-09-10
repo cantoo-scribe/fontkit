@@ -6,43 +6,50 @@ import * as Script from '../layout/Script';
  * Returned by the font layout method.
  */
 export default class GlyphRun {
+  /**
+   * @param {import('../glyph/Glyph').default[]} glyphs
+   * @param {import('../../types/fontkit').FeatureInput | null | undefined} features
+   * @param {import('../../types/fontkit').ScriptTag | string[] | null | undefined} script
+   * @param {import('../../types/fontkit').LanguageTag | null | undefined} language
+   * @param {import('../../types/fontkit').TextDirection | null | undefined} direction
+   */
   constructor(glyphs, features, script, language, direction) {
     /**
      * An array of Glyph objects in the run
-     * @type {Glyph[]}
+     * @type {import('../glyph/Glyph').default[]}
      */
     this.glyphs = glyphs;
 
     /**
      * An array of GlyphPosition objects for each glyph in the run
-     * @type {GlyphPosition[]}
+     * @type {import('./GlyphPosition').default[] | null}
      */
     this.positions = null;
 
     /**
      * The script that was requested for shaping. This was either passed in or detected automatically.
-     * @type {string}
+     * @type {import('../../types/fontkit').ScriptTag | string[] | null | undefined}
      */
     this.script = script;
 
     /**
      * The language requested for shaping, as passed in. If `null`, the default language for the
      * script was used.
-     * @type {string}
+     * @type {import('../../types/fontkit').LanguageTag | null}
      */
     this.language = language || null;
 
     /**
      * The direction requested for shaping, as passed in (either ltr or rtl).
      * If `null`, the default direction of the script is used.
-     * @type {string}
+     * @type {import('../../types/fontkit').TextDirection}
      */
     this.direction = direction || Script.direction(script);
 
     /**
      * The features requested during shaping. This is a combination of user
      * specified features and features chosen by the shaper.
-     * @type {object}
+     * @type {import('../../types/fontkit').FeatureMap}
      */
     this.features = {};
 
@@ -51,7 +58,7 @@ export default class GlyphRun {
       for (let tag of features) {
         this.features[tag] = true;
       }
-    } else if (typeof features === 'object') {
+    } else if (typeof features === 'object' && features !== null) {
       this.features = features;
     }
   }
@@ -62,6 +69,10 @@ export default class GlyphRun {
    */
   get advanceWidth() {
     let width = 0;
+    if (!this.positions) {
+      return width;
+    }
+
     for (let position of this.positions) {
       width += position.xAdvance;
     }
@@ -75,6 +86,10 @@ export default class GlyphRun {
   */
   get advanceHeight() {
     let height = 0;
+    if (!this.positions) {
+      return height;
+    }
+
     for (let position of this.positions) {
       height += position.yAdvance;
     }
@@ -88,6 +103,9 @@ export default class GlyphRun {
   */
   get bbox() {
     let bbox = new BBox();
+    if (!this.positions) {
+      return bbox;
+    }
 
     let x = 0;
     let y = 0;

@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "maxNodeModuleJsDepth": 0,
+    "types": ["node"]
+  },
+  "include": [
+    "src/**/*.js",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "coverage",
+    "node_modules",
+    "src/opentype/shapers/generate-data.js",
+    "src/opentype/shapers/gen-use.js",
+    "src/opentype/shapers/gen-indic.js",
+    "src/packages/unicode-properties/generate.js",
+    "src/packages/unicode-properties/prepare-publish.js",
+    "src/packages/**/dist/**",
+    "scripts/**",
+    "test/**"
+  ]
+}

@@ -1,9 +1,29 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
+/**
+ * @param {StructValue} t
+ * @param {number} depth
+ * @param {number} nameIndex
+ * @returns {unknown}
+ */
+function featureNameAt(t, depth, nameIndex) {
+  let cur = t;
+  for (let i = 0; i < depth; i++) {
+    cur = /** @type {StructValue} */ (cur.parent);
+  }
+  let name = /** @type {StructValue} */ (cur.name);
+  let records = /** @type {StructValue} */ (name.records);
+  let fontFeatures = /** @type {Record<number, unknown>} */ (records.fontFeatures);
+  return fontFeatures[nameIndex];
+}
+
 let Setting = new r.Struct({
   setting: r.uint16,
   nameIndex: r.int16,
-  name: t => t.parent.parent.parent.name.records.fontFeatures[t.nameIndex]
+  /** @param {StructValue} t @returns {unknown} */
+  name: t => featureNameAt(t, 3, /** @type {number} */ (t.nameIndex))
 });
 
 let FeatureName = new r.Struct({
@@ -16,9 +36,11 @@ let FeatureName = new r.Struct({
   ]),
   defaultSetting: r.uint8,
   nameIndex: r.int16,
-  name: t => t.parent.parent.name.records.fontFeatures[t.nameIndex]
+  /** @param {StructValue} t @returns {unknown} */
+  name: t => featureNameAt(t, 2, /** @type {number} */ (t.nameIndex))
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.fixed32,
   featureNameCount: r.uint16,

@@ -1,5 +1,9 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').EncodeStream} EncodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('./Path').default} Path */
+
 // Flags for simple glyphs
 const ON_CURVE = 1 << 0;
 const X_SHORT_VECTOR = 1 << 1;
@@ -9,10 +13,19 @@ const SAME_X = 1 << 4;
 const SAME_Y = 1 << 5;
 
 class Point {
+  /**
+   * @param {number} val
+   * @returns {number}
+   */
   static size(val) {
     return val >= 0 && val <= 255 ? 1 : 2;
   }
 
+  /**
+   * @param {EncodeStream} stream
+   * @param {number} value
+   * @returns {void}
+   */
   static encode(stream, value) {
     if (value >= 0 && value <= 255) {
       stream.writeUInt8(value);
@@ -39,10 +52,19 @@ let Glyf = new r.Struct({
  * Encodes TrueType glyph outlines
  */
 export default class TTFGlyphEncoder {
+  /**
+   * @param {Path} path
+   * @param {number[]} [instructions]
+   * @returns {import('restructure').BinaryBuffer}
+   */
   encodeSimple(path, instructions = []) {
+    /** @type {number[]} */
     let endPtsOfContours = [];
+    /** @type {number[]} */
     let xPoints = [];
+    /** @type {number[]} */
     let yPoints = [];
+    /** @type {number[]} */
     let flags = [];
     let same = 0;
     let lastX = 0, lastY = 0, lastFlag = 0;
@@ -108,6 +130,7 @@ export default class TTFGlyphEncoder {
     }
 
     let bbox = path.bbox;
+    /** @type {StructValue} */
     let glyf = {
       numberOfContours: endPtsOfContours.length,
       xMin: bbox.minX,
@@ -135,6 +158,15 @@ export default class TTFGlyphEncoder {
     return stream.buffer;
   }
 
+  /**
+   * @param {number} value
+   * @param {number} last
+   * @param {number[]} points
+   * @param {number} flag
+   * @param {number} shortFlag
+   * @param {number} sameFlag
+   * @returns {number}
+   */
   _encodePoint(value, last, points, flag, shortFlag, sameFlag) {
     let diff = value - last;
 

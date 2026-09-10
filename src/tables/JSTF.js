@@ -9,12 +9,12 @@ let JstfPriority = new r.Struct({
   shrinkageDisableGSUB: new r.Pointer(r.uint16, JstfGSUBModList),
   shrinkageEnableGPOS: new r.Pointer(r.uint16, JstfGSUBModList),
   shrinkageDisableGPOS: new r.Pointer(r.uint16, JstfGSUBModList),
-  shrinkageJstfMax: new r.Pointer(r.uint16, new LookupList(GPOSLookup)),
+  shrinkageJstfMax: new r.Pointer(r.uint16, LookupList(GPOSLookup)),
   extensionEnableGSUB: new r.Pointer(r.uint16, JstfGSUBModList),
   extensionDisableGSUB: new r.Pointer(r.uint16, JstfGSUBModList),
   extensionEnableGPOS: new r.Pointer(r.uint16, JstfGSUBModList),
   extensionDisableGPOS: new r.Pointer(r.uint16, JstfGSUBModList),
-  extensionJstfMax: new r.Pointer(r.uint16, new LookupList(GPOSLookup))
+  extensionJstfMax: new r.Pointer(r.uint16, LookupList(GPOSLookup))
 });
 
 let JstfLangSys = new r.Array(new r.Pointer(r.uint16, JstfPriority), r.uint16);
@@ -36,6 +36,7 @@ let JstfScriptRecord = new r.Struct({
   script: new r.Pointer(r.uint16, JstfScript, { type: 'parent' })
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint32, // should be 0x00010000
   scriptCount: r.uint16,

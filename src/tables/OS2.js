@@ -1,5 +1,6 @@
 import * as r from 'restructure';
 
+/** @type {import('restructure').VersionedStruct} */
 var OS2 = new r.VersionedStruct(r.uint16, {
   header: {
     xAvgCharWidth: r.int16, // average weighted advance width of lower case letters and space

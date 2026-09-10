@@ -1,3 +1,4 @@
+/** @type {string[]} */
 export let ISOAdobeCharset = [
   '.notdef', 'space', 'exclam', 'quotedbl', 'numbersign', 'dollar',
   'percent', 'ampersand', 'quoteright', 'parenleft', 'parenright',
@@ -35,6 +36,7 @@ export let ISOAdobeCharset = [
   'ugrave', 'yacute', 'ydieresis', 'zcaron'
 ];
 
+/** @type {string[]} */
 export let ExpertCharset = [
   '.notdef', 'space', 'exclamsmall', 'Hungarumlautsmall', 'dollaroldstyle',
   'dollarsuperior', 'ampersandsmall', 'Acutesmall', 'parenleftsuperior',
@@ -75,6 +77,7 @@ export let ExpertCharset = [
   'Ydieresissmall'
 ];
 
+/** @type {string[]} */
 export let ExpertSubsetCharset = [
   '.notdef', 'space', 'dollaroldstyle', 'dollarsuperior',
   'parenleftsuperior', 'parenrightsuperior', 'twodotenleader',

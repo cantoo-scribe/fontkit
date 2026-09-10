@@ -2,17 +2,27 @@ import CFFDict from './CFFDict';
 import CFFIndex from './CFFIndex';
 import CFFPointer from './CFFPointer';
 
-class CFFBlendOp {
-  static decode(stream, parent, operands) {
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+
+/** @type {import('../../types/fontkit').CFFOperandType} */
+const CFFBlendOp = {
+  /**
+   * @param {DecodeStream} _stream
+   * @param {StructValue} _parent
+   * @param {number[]} operands
+   * @returns {void}
+   */
+  decode(_stream, _parent, operands) {
     let numBlends = operands.pop();
 
     // TODO: actually blend. For now just consume the deltas
     // since we don't use any of the values anyway.
-    while (operands.length > numBlends) {
+    while (operands.length > /** @type {number} */ (numBlends)) {
       operands.pop();
     }
   }
-}
+};
 
 export default new CFFDict([
   // key       name                    type                                          default

@@ -1,5 +1,8 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').StructValue} StructValue */
+
 // ########################
 // Scripts and Languages #
 // ########################
@@ -27,6 +30,7 @@ let ScriptRecord = new r.Struct({
   script: new r.Pointer(r.uint16, Script, { type: 'parent' })
 });
 
+/** @type {import('restructure').ArrayT} */
 export let ScriptList = new r.Array(ScriptRecord, r.uint16);
 
 // #######################
@@ -38,6 +42,7 @@ let FeatureParams = new r.Struct({
   nameID: r.uint16 // OT spec: UI Name ID or uiLabelNameId
 });
 
+/** @type {import('restructure').Struct} */
 export let Feature = new r.Struct({
   featureParams: new r.Pointer(r.uint16, FeatureParams),
   lookupCount: r.uint16,
@@ -49,6 +54,7 @@ let FeatureRecord = new r.Struct({
   feature: new r.Pointer(r.uint16, Feature, { type: 'parent' })
 });
 
+/** @type {import('restructure').ArrayT} */
 export let FeatureList = new r.Array(FeatureRecord, r.uint16);
 
 let LookupFlags = new r.Struct({
@@ -59,13 +65,25 @@ let LookupFlags = new r.Struct({
   ])
 });
 
+/**
+ * @param {BaseType} SubTable
+ * @returns {import('restructure').LazyArray}
+ */
 export function LookupList(SubTable) {
   let Lookup = new r.Struct({
     lookupType: r.uint16,
     flags: LookupFlags,
     subTableCount: r.uint16,
     subTables: new r.Array(new r.Pointer(r.uint16, SubTable), 'subTableCount'),
-    markFilteringSet: new r.Optional(r.uint16, t => t.flags.flags.useMarkFilteringSet)
+    markFilteringSet: new r.Optional(
+      r.uint16,
+      /** @param {StructValue} t @returns {boolean} */
+      (t) => {
+        let flags = /** @type {StructValue} */ (t.flags);
+        let bits = /** @type {Record<string, boolean>} */ (flags.flags);
+        return !!bits.useMarkFilteringSet;
+      }
+    )
   });
 
   return new r.LazyArray(new r.Pointer(r.uint16, Lookup), r.uint16);
@@ -81,6 +99,7 @@ let RangeRecord = new r.Struct({
   startCoverageIndex: r.uint16
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export let Coverage = new r.VersionedStruct(r.uint16, {
   1: {
     glyphCount: r.uint16,
@@ -102,6 +121,7 @@ let ClassRangeRecord = new r.Struct({
   class: r.uint16
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export let ClassDef = new r.VersionedStruct(r.uint16, {
   1: { // Class array
     startGlyph: r.uint16,
@@ -118,6 +138,7 @@ export let ClassDef = new r.VersionedStruct(r.uint16, {
 // Device Table #
 // ###############
 
+/** @type {import('restructure').Struct} */
 export let Device = new r.Struct({
   a: r.uint16, // startSize for hinting Device, outerIndex for VariationIndex
   b: r.uint16, // endSize for Device, innerIndex for VariationIndex
@@ -136,7 +157,11 @@ let LookupRecord = new r.Struct({
 let Rule = new r.Struct({
   glyphCount: r.uint16,
   lookupCount: r.uint16,
-  input: new r.Array(r.uint16, t => t.glyphCount - 1),
+  input: new r.Array(
+    r.uint16,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.glyphCount) - 1
+  ),
   lookupRecords: new r.Array(LookupRecord, 'lookupCount')
 });
 
@@ -145,12 +170,17 @@ let RuleSet = new r.Array(new r.Pointer(r.uint16, Rule), r.uint16);
 let ClassRule = new r.Struct({
   glyphCount: r.uint16,
   lookupCount: r.uint16,
-  classes: new r.Array(r.uint16, t => t.glyphCount - 1),
+  classes: new r.Array(
+    r.uint16,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.glyphCount) - 1
+  ),
   lookupRecords: new r.Array(LookupRecord, 'lookupCount')
 });
 
 let ClassSet = new r.Array(new r.Pointer(r.uint16, ClassRule), r.uint16);
 
+/** @type {import('restructure').VersionedStruct} */
 export let Context = new r.VersionedStruct(r.uint16, {
   1: { // Simple context
     coverage: new r.Pointer(r.uint16, Coverage),
@@ -179,7 +209,11 @@ let ChainRule = new r.Struct({
   backtrackGlyphCount: r.uint16,
   backtrack: new r.Array(r.uint16, 'backtrackGlyphCount'),
   inputGlyphCount: r.uint16,
-  input: new r.Array(r.uint16, t => t.inputGlyphCount - 1),
+  input: new r.Array(
+    r.uint16,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.inputGlyphCount) - 1
+  ),
   lookaheadGlyphCount: r.uint16,
   lookahead: new r.Array(r.uint16, 'lookaheadGlyphCount'),
   lookupCount: r.uint16,
@@ -188,6 +222,7 @@ let ChainRule = new r.Struct({
 
 let ChainRuleSet = new r.Array(new r.Pointer(r.uint16, ChainRule), r.uint16);
 
+/** @type {import('restructure').VersionedStruct} */
 export let ChainingContext = new r.VersionedStruct(r.uint16, {
   1: { // Simple context glyph substitution
     coverage: new r.Pointer(r.uint16, Coverage),

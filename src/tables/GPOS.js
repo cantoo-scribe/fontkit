@@ -2,6 +2,12 @@ import * as r from 'restructure';
 import { ScriptList, FeatureList, LookupList, Coverage, ClassDef, Device, Context, ChainingContext } from './opentype';
 import { FeatureVariations } from './variations';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').Struct} Struct */
+/** @typedef {import('restructure').StructValue} StructValue */
+/** @typedef {import('restructure').Pointer} Pointer */
+
 let ValueFormat = new r.Bitfield(r.uint16, [
   'xPlacement', 'yPlacement',
   'xAdvance', 'yAdvance',
@@ -9,36 +15,67 @@ let ValueFormat = new r.Bitfield(r.uint16, [
   'xAdvDevice', 'yAdvDevice'
 ]);
 
+/** @type {Record<string, BaseType>} */
 let types = {
   xPlacement: r.int16,
   yPlacement: r.int16,
   xAdvance: r.int16,
   yAdvance: r.int16,
-  xPlaDevice: new r.Pointer(r.uint16, Device, { type: 'global', relativeTo: ctx => ctx.rel }),
-  yPlaDevice: new r.Pointer(r.uint16, Device, { type: 'global', relativeTo: ctx => ctx.rel }),
-  xAdvDevice: new r.Pointer(r.uint16, Device, { type: 'global', relativeTo: ctx => ctx.rel }),
-  yAdvDevice: new r.Pointer(r.uint16, Device, { type: 'global', relativeTo: ctx => ctx.rel })
+  xPlaDevice: new r.Pointer(r.uint16, Device, {
+    type: 'global',
+    /** @param {StructValue} ctx @returns {number} */
+    relativeTo: ctx => /** @type {number} */ (ctx.rel)
+  }),
+  yPlaDevice: new r.Pointer(r.uint16, Device, {
+    type: 'global',
+    /** @param {StructValue} ctx @returns {number} */
+    relativeTo: ctx => /** @type {number} */ (ctx.rel)
+  }),
+  xAdvDevice: new r.Pointer(r.uint16, Device, {
+    type: 'global',
+    /** @param {StructValue} ctx @returns {number} */
+    relativeTo: ctx => /** @type {number} */ (ctx.rel)
+  }),
+  yAdvDevice: new r.Pointer(r.uint16, Device, {
+    type: 'global',
+    /** @param {StructValue} ctx @returns {number} */
+    relativeTo: ctx => /** @type {number} */ (ctx.rel)
+  })
 };
 
+/**
+ * Dynamic GPOS value record whose fields depend on a ValueFormat bitfield.
+ * @implements {BaseType}
+ */
 class ValueRecord {
+  /**
+   * @param {string} [key]
+   */
   constructor(key = 'valueFormat') {
+    /** @type {string} */
     this.key = key;
   }
 
+  /**
+   * @param {StructValue | null | undefined} parent
+   * @returns {Struct | undefined}
+   */
   buildStruct(parent) {
     let struct = parent;
-    while (!struct[this.key] && struct.parent) {
+    while (struct && !struct[this.key] && struct.parent) {
       struct = struct.parent;
     }
 
-    if (!struct[this.key]) return;
+    if (!struct || !struct[this.key]) return;
 
+    /** @type {Record<string, BaseType | ((this: StructValue, parent: StructValue) => unknown)>} */
     let fields = {};
-    fields.rel = () => struct._startOffset;
+    let start = struct;
+    fields.rel = () => start._startOffset;
 
-    let format = struct[this.key];
-    for (let key in format) {
-      if (format[key]) {
+    let format = /** @type {Record<string, boolean>} */ (struct[this.key]);
+    for (let key of Object.keys(format)) {
+      if (format[key] && types[key]) {
         fields[key] = types[key];
       }
     }
@@ -46,12 +83,25 @@ class ValueRecord {
     return new r.Struct(fields);
   }
 
+  /**
+   * @param {unknown} val
+   * @param {StructValue | null | undefined} ctx
+   * @returns {number}
+   */
   size(val, ctx) {
-    return this.buildStruct(ctx).size(val, ctx);
+    let s = this.buildStruct(ctx);
+    return s ? s.size(/** @type {StructValue} */ (val), ctx) : 0;
   }
 
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue | null | undefined} parent
+   * @returns {StructValue | undefined}
+   */
   decode(stream, parent) {
-    let res = this.buildStruct(parent).decode(stream, parent);
+    let s = this.buildStruct(parent);
+    if (!s) return;
+    let res = s.decode(stream, parent);
     delete res.rel;
     return res;
   }
@@ -102,13 +152,24 @@ let MarkRecord = new r.Struct({
 
 let MarkArray = new r.Array(MarkRecord, r.uint16);
 
-let BaseRecord = new r.Array(new r.Pointer(r.uint16, Anchor), t => t.parent.classCount);
+let BaseRecord = new r.Array(
+  new r.Pointer(r.uint16, Anchor),
+  /** @param {StructValue} t @returns {number} */
+  t => /** @type {number} */ (/** @type {StructValue} */ (t.parent).classCount)
+);
 let BaseArray = new r.Array(BaseRecord, r.uint16);
 
-let ComponentRecord = new r.Array(new r.Pointer(r.uint16, Anchor), t => t.parent.parent.classCount);
+let ComponentRecord = new r.Array(
+  new r.Pointer(r.uint16, Anchor),
+  /** @param {StructValue} t @returns {number} */
+  t => /** @type {number} */ (
+    /** @type {StructValue} */ (/** @type {StructValue} */ (t.parent).parent).classCount
+  )
+);
 let LigatureAttach = new r.Array(ComponentRecord, r.uint16);
 let LigatureArray = new r.Array(new r.Pointer(r.uint16, LigatureAttach), r.uint16);
 
+/** @type {import('restructure').VersionedStruct} */
 let GPOSLookup = new r.VersionedStruct('lookupType', {
   1: new r.VersionedStruct(r.uint16, { // Single Adjustment
     1: { // Single positioning value
@@ -190,13 +251,15 @@ let GPOSLookup = new r.VersionedStruct('lookupType', {
 });
 
 // Fix circular reference
-GPOSLookup.versions[9].extension.type = GPOSLookup;
+let gposExt = /** @type {Record<string, BaseType>} */ (GPOSLookup.versions[9]);
+/** @type {Pointer} */ (gposExt.extension).type = GPOSLookup;
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint32, {
   header: {
     scriptList: new r.Pointer(r.uint16, ScriptList),
     featureList: new r.Pointer(r.uint16, FeatureList),
-    lookupList: new r.Pointer(r.uint16, new LookupList(GPOSLookup))
+    lookupList: new r.Pointer(r.uint16, LookupList(GPOSLookup))
   },
 
   0x00010000: {},

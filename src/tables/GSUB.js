@@ -2,17 +2,26 @@ import * as r from 'restructure';
 import { ScriptList, FeatureList, LookupList, Coverage, Context, ChainingContext } from './opentype';
 import { FeatureVariations } from './variations';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').Pointer} Pointer */
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let Sequence = new r.Array(r.uint16, r.uint16);
 let AlternateSet = Sequence;
 
 let Ligature = new r.Struct({
   glyph: r.uint16,
   compCount: r.uint16,
-  components: new r.Array(r.uint16, t => t.compCount - 1)
+  components: new r.Array(
+    r.uint16,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.compCount) - 1
+  )
 });
 
 let LigatureSet = new r.Array(new r.Pointer(r.uint16, Ligature), r.uint16);
 
+/** @type {import('restructure').VersionedStruct} */
 let GSUBLookup = new r.VersionedStruct('lookupType', {
   1: new r.VersionedStruct(r.uint16, { // Single Substitution
     1: {
@@ -69,13 +78,15 @@ let GSUBLookup = new r.VersionedStruct('lookupType', {
 });
 
 // Fix circular reference
-GSUBLookup.versions[7].extension.type = GSUBLookup;
+let gsubExt = /** @type {Record<string, BaseType>} */ (GSUBLookup.versions[7]);
+/** @type {Pointer} */ (gsubExt.extension).type = GSUBLookup;
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint32, {
   header: {
     scriptList: new r.Pointer(r.uint16, ScriptList),
     featureList: new r.Pointer(r.uint16, FeatureList),
-    lookupList: new r.Pointer(r.uint16, new LookupList(GSUBLookup))
+    lookupList: new r.Pointer(r.uint16, LookupList(GSUBLookup))
   },
 
   0x00010000: {},

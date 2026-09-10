@@ -1,5 +1,10 @@
 import * as r from 'restructure';
 
+/** @typedef {import('restructure').BaseType} BaseType */
+/** @typedef {import('restructure').DecodeStream} DecodeStream */
+/** @typedef {import('restructure').EncodeStream} EncodeStream */
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let AxisRecord = new r.Struct({
   axisTag: new r.String(4),
   axisNameID: r.uint16,
@@ -41,19 +46,40 @@ let AxisValue = new r.VersionedStruct(r.uint16, {
 });
 
 let AxisValueArray = new r.Struct({
-  axisValues: new r.Array(new r.Pointer(r.uint16, AxisValue), t => t.parent.axisValueCount)
+  axisValues: new r.Array(
+    new r.Pointer(r.uint16, AxisValue),
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (/** @type {StructValue} */ (t.parent).axisValueCount)
+  )
 });
 
-// Use designAxisSize as record stride (OpenType forward-compat).
+/**
+ * Design-axis array whose record stride is designAxisSize (OpenType forward-compat).
+ * @implements {BaseType}
+ */
 class DesignAxisArray {
+  /**
+   * @param {StructValue | null | undefined} parent
+   * @returns {number}
+   */
   _stride(parent) {
     // Spec requires room for Tag + 2×uint16 (8 bytes); never shrink below that.
-    return Math.max(8, parent.designAxisSize ?? parent.val?.designAxisSize ?? 8);
+    let fromParent = parent ? /** @type {number | undefined} */ (parent.designAxisSize) : undefined;
+    let fromVal = parent && parent.val
+      ? /** @type {number | undefined} */ (/** @type {StructValue} */ (parent.val).designAxisSize)
+      : undefined;
+    return Math.max(8, fromParent ?? fromVal ?? 8);
   }
 
+  /**
+   * @param {DecodeStream} stream
+   * @param {StructValue | null | undefined} parent
+   * @returns {StructValue[]}
+   */
   decode(stream, parent) {
-    let count = parent.designAxisCount;
+    let count = parent ? /** @type {number} */ (parent.designAxisCount) : 0;
     let size = this._stride(parent);
+    /** @type {StructValue[]} */
     let res = [];
     for (let i = 0; i < count; i++) {
       let start = stream.pos;
@@ -63,13 +89,26 @@ class DesignAxisArray {
     return res;
   }
 
+  /**
+   * @param {unknown} array
+   * @param {StructValue | null | undefined} parent
+   * @returns {number}
+   */
   size(array, parent) {
-    return (array?.length ?? 0) * this._stride(parent);
+    let len = Array.isArray(array) ? array.length : 0;
+    return len * this._stride(parent);
   }
 
+  /**
+   * @param {EncodeStream} stream
+   * @param {unknown} array
+   * @param {StructValue | null | undefined} parent
+   * @returns {void}
+   */
   encode(stream, array, parent) {
     let size = this._stride(parent);
-    for (let item of array) {
+    let items = Array.isArray(array) ? /** @type {StructValue[]} */ (array) : [];
+    for (let item of items) {
       let start = stream.pos;
       AxisRecord.encode(stream, item, parent);
       let pad = size - (stream.pos - start);
@@ -80,6 +119,7 @@ class DesignAxisArray {
   }
 }
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint32, {
   header: {
     designAxisSize: r.uint16,

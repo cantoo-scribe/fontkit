@@ -3,9 +3,19 @@ import { getEncoding, getEncodingMapping } from './encodings';
 import { cache } from './decorators';
 import { range } from './utils';
 
+/** @typedef {import('../types/fontkit').CmapTable} CmapTable */
+/** @typedef {import('../types/fontkit').CmapSubtable} CmapSubtable */
+/** @typedef {import('../types/fontkit').CmapSubtable14} CmapSubtable14 */
+/** @typedef {import('../types/fontkit').CmapGroup} CmapGroup */
+/** @typedef {import('../types/fontkit').CmapVarSelector} CmapVarSelector */
+
 export default class CmapProcessor {
+  /**
+   * @param {CmapTable} cmapTable
+   */
   constructor(cmapTable) {
     // Attempt to find a Unicode cmap first
+    /** @type {Map<number, number> | null} */
     this.encoding = null;
     this.cmap = this.findSubtable(cmapTable, [
       // 32-bit subtables
@@ -24,7 +34,14 @@ export default class CmapProcessor {
     // If not unicode cmap was found, take the first table with a supported encoding.
     if (!this.cmap) {
       for (let cmap of cmapTable.tables) {
-        let encoding = getEncoding(cmap.platformID, cmap.encodingID, cmap.table.language - 1);
+        let language
+          = 'language' in cmap.table && typeof cmap.table.language === 'number'
+            ? cmap.table.language - 1
+            : 0;
+        let encoding = getEncoding(cmap.platformID, cmap.encodingID, language);
+        if (!encoding) {
+          continue;
+        }
         let mapping = getEncodingMapping(encoding);
         if (mapping) {
           this.cmap = cmap.table;
@@ -37,12 +54,16 @@ export default class CmapProcessor {
       throw new Error('Could not find a supported cmap table');
     }
 
-    this.uvs = this.findSubtable(cmapTable, [[0, 5]]);
-    if (this.uvs && this.uvs.version !== 14) {
-      this.uvs = null;
-    }
+    let uvs = this.findSubtable(cmapTable, [[0, 5]]);
+    /** @type {CmapSubtable14 | null} */
+    this.uvs = uvs && uvs.version === 14 ? /** @type {CmapSubtable14} */ (uvs) : null;
   }
 
+  /**
+   * @param {CmapTable} cmapTable
+   * @param {Array<[number, number]>} pairs
+   * @returns {CmapSubtable | null}
+   */
   findSubtable(cmapTable, pairs) {
     for (let [platformID, encodingID] of pairs) {
       for (let cmap of cmapTable.tables) {
@@ -55,6 +76,11 @@ export default class CmapProcessor {
     return null;
   }
 
+  /**
+   * @param {number} codepoint
+   * @param {number} [variationSelector]
+   * @returns {number}
+   */
   lookup(codepoint, variationSelector) {
     // If there is no Unicode cmap in this font, we need to re-encode
     // the codepoint in the encoding that the cmap supports.
@@ -80,21 +106,21 @@ export default class CmapProcessor {
         while (min <= max) {
           let mid = (min + max) >> 1;
 
-          if (codepoint < cmap.startCode.get(mid)) {
+          if (codepoint < /** @type {number} */ (cmap.startCode.get(mid))) {
             max = mid - 1;
-          } else if (codepoint > cmap.endCode.get(mid)) {
+          } else if (codepoint > /** @type {number} */ (cmap.endCode.get(mid))) {
             min = mid + 1;
           } else {
-            let rangeOffset = cmap.idRangeOffset.get(mid);
+            let rangeOffset = /** @type {number} */ (cmap.idRangeOffset.get(mid));
             let gid;
 
             if (rangeOffset === 0) {
-              gid = codepoint + cmap.idDelta.get(mid);
+              gid = codepoint + /** @type {number} */ (cmap.idDelta.get(mid));
             } else {
-              let index = rangeOffset / 2 + (codepoint - cmap.startCode.get(mid)) - (cmap.segCount - mid);
+              let index = rangeOffset / 2 + (codepoint - /** @type {number} */ (cmap.startCode.get(mid))) - (cmap.segCount - mid);
               gid = cmap.glyphIndexArray.get(index) || 0;
               if (gid !== 0) {
-                gid += cmap.idDelta.get(mid);
+                gid += /** @type {number} */ (cmap.idDelta.get(mid));
               }
             }
 
@@ -118,7 +144,7 @@ export default class CmapProcessor {
         let max = cmap.nGroups - 1;
         while (min <= max) {
           let mid = (min + max) >> 1;
-          let group = cmap.groups.get(mid);
+          let group = /** @type {CmapGroup} */ (cmap.groups.get(mid));
 
           if (codepoint < group.startCharCode) {
             max = mid - 1;
@@ -140,10 +166,15 @@ export default class CmapProcessor {
         throw new Error('TODO: cmap format 14');
 
       default:
-        throw new Error(`Unknown cmap format ${cmap.version}`);
+        throw new Error(`Unknown cmap format ${/** @type {{ version: number }} */ (cmap).version}`);
     }
   }
 
+  /**
+   * @param {number} codepoint
+   * @param {number} variationSelector
+   * @returns {number}
+   */
   getVariationSelector(codepoint, variationSelector) {
     if (!this.uvs) {
       return 0;
@@ -155,7 +186,8 @@ export default class CmapProcessor {
       return 0;
     }
 
-    let { defaultUVS, nonDefaultUVS } = selectors[i];
+    let sel = /** @type {CmapVarSelector} */ (selectors[i]);
+    let { defaultUVS, nonDefaultUVS } = sel;
 
     // Default UVS: fall back to the base character's normal cmap glyph.
     if (defaultUVS && binarySearch(defaultUVS, x =>
@@ -168,6 +200,9 @@ export default class CmapProcessor {
     return ni !== -1 ? nonDefaultUVS[ni].glyphID : 0;
   }
 
+  /**
+   * @returns {number[]}
+   */
   @cache
   getCharacterSet() {
     let cmap = this.cmap;
@@ -180,7 +215,7 @@ export default class CmapProcessor {
         let endCodes = cmap.endCode.toArray();
         for (let i = 0; i < endCodes.length; i++) {
           let tail = endCodes[i] + 1;
-          let start = cmap.startCode.get(i);
+          let start = /** @type {number} */ (cmap.startCode.get(i));
           res.push(...range(start, tail));
         }
 
@@ -208,10 +243,14 @@ export default class CmapProcessor {
         throw new Error('TODO: cmap format 14');
 
       default:
-        throw new Error(`Unknown cmap format ${cmap.version}`);
+        throw new Error(`Unknown cmap format ${/** @type {{ version: number }} */ (cmap).version}`);
     }
   }
 
+  /**
+   * @param {number} gid
+   * @returns {number[]}
+   */
   @cache
   codePointsForGlyph(gid) {
     let cmap = this.cmap;
@@ -230,10 +269,10 @@ export default class CmapProcessor {
       case 4: {
         let res = [];
         for (let i = 0; i < cmap.segCount; i++) {
-          let end = cmap.endCode.get(i);
-          let start = cmap.startCode.get(i);
-          let rangeOffset = cmap.idRangeOffset.get(i);
-          let delta = cmap.idDelta.get(i);
+          let end = /** @type {number} */ (cmap.endCode.get(i));
+          let start = /** @type {number} */ (cmap.startCode.get(i));
+          let rangeOffset = /** @type {number} */ (cmap.idRangeOffset.get(i));
+          let delta = /** @type {number} */ (cmap.idDelta.get(i));
 
           for (var c = start; c <= end; c++) {
             let g;

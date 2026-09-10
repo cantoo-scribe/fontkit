@@ -12,11 +12,6 @@ const shared = {
       '.js': 'ts',
       '.trie': 'base64'
     };
-    options.tsconfigRaw = {
-      compilerOptions: {
-        experimentalDecorators: true
-      }
-    };
   }
 };
 

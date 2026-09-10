@@ -1,26 +1,33 @@
 import TTFGlyph, { Point } from './TTFGlyph';
 import BBox from './BBox';
 
+/** @typedef {import('../../types/fontkit').DecodedGlyf} DecodedGlyf */
+/** @typedef {import('../../types/fontkit').GlyphComponent} GlyphComponent */
+
 /**
  * Represents a TrueType glyph in the WOFF2 format, which compresses glyphs differently.
  */
 export default class WOFF2Glyph extends TTFGlyph {
   type = 'WOFF2';
 
+  /**
+   * @returns {DecodedGlyf | null}
+   */
   _decode() {
-    let cached = this._font._transformedGlyphs[this.id];
+    let cached = this._font._transformedGlyphs?.[this.id];
     if (!cached) {
       return null;
     }
 
     if (!this._font._variationProcessor) {
       // Non-variable path: return the pre-decoded glyph without copying.
-      return cached;
+      return /** @type {DecodedGlyf} */ (cached);
     }
 
     // Clone so per-instance deltas do not mutate the shared transformed cache.
     // Transformed glyf has no per-glyph bbox; zeros keep phantom-point math
     // aligned with hmtx (same approach as a missing bbox bitmap entry).
+    /** @type {DecodedGlyf} */
     let glyph = {
       numberOfContours: cached.numberOfContours,
       xMin: 0,
@@ -30,7 +37,12 @@ export default class WOFF2Glyph extends TTFGlyph {
     };
 
     if (cached.points) {
-      glyph.points = cached.points.map(p => p.copy());
+      glyph.points = cached.points.map((p) => {
+        if (typeof p.copy === 'function') {
+          return p.copy();
+        }
+        return new Point(p.onCurve, p.endContour, p.x, p.y);
+      });
       let points = glyph.points.concat(this._getPhantomPoints(glyph));
       this._font._variationProcessor.transformPoints(this.id, points);
       glyph.phantomPoints = points.slice(-4);
@@ -38,9 +50,12 @@ export default class WOFF2Glyph extends TTFGlyph {
 
     if (cached.components) {
       glyph.components = cached.components.map((c) => {
-        return Object.assign(Object.create(Object.getPrototypeOf(c)), c);
+        /** @type {GlyphComponent} */
+        let clone = Object.assign(Object.create(Object.getPrototypeOf(c)), c);
+        return clone;
       });
 
+      /** @type {Point[]} */
       let points = [];
       for (let component of glyph.components) {
         points.push(new Point(true, true, component.dx, component.dy));
@@ -59,6 +74,10 @@ export default class WOFF2Glyph extends TTFGlyph {
     return glyph;
   }
 
+  /**
+   * @param {boolean} [internal]
+   * @returns {BBox}
+   */
   _getCBox(internal) {
     // Avoid path recursion while building phantom points during variation decode.
     if (internal) {

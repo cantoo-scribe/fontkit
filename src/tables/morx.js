@@ -1,6 +1,8 @@
 import * as r from 'restructure';
 import { UnboundedArray, LookupTable, StateTable } from './aat';
 
+/** @typedef {import('restructure').StructValue} StructValue */
+
 let LigatureData = {
   action: r.uint16
 };
@@ -16,32 +18,32 @@ let InsertionData = {
 };
 
 let SubstitutionTable = new r.Struct({
-  items: new UnboundedArray(new r.Pointer(r.uint32, new LookupTable()))
+  items: new UnboundedArray(new r.Pointer(r.uint32, LookupTable()))
 });
 
 let SubtableData = new r.VersionedStruct('type', {
   0: { // Indic Rearrangement Subtable
-    stateTable: new StateTable()
+    stateTable: StateTable()
   },
 
   1: { // Contextual Glyph Substitution Subtable
-    stateTable: new StateTable(ContextualData),
+    stateTable: StateTable(ContextualData),
     substitutionTable: new r.Pointer(r.uint32, SubstitutionTable)
   },
 
   2: { // Ligature subtable
-    stateTable: new StateTable(LigatureData),
+    stateTable: StateTable(LigatureData),
     ligatureActions: new r.Pointer(r.uint32, new UnboundedArray(r.uint32)),
     components: new r.Pointer(r.uint32, new UnboundedArray(r.uint16)),
     ligatureList: new r.Pointer(r.uint32, new UnboundedArray(r.uint16))
   },
 
   4: { // Non-contextual Glyph Substitution Subtable
-    lookupTable: new LookupTable()
+    lookupTable: LookupTable()
   },
 
   5: { // Glyph Insertion Subtable
-    stateTable: new StateTable(InsertionData),
+    stateTable: StateTable(InsertionData),
     insertionActions: new r.Pointer(r.uint32, new UnboundedArray(r.uint16))
   }
 });
@@ -52,7 +54,11 @@ let Subtable = new r.Struct({
   type: r.uint8,
   subFeatureFlags: r.uint32,
   table: SubtableData,
-  padding: new r.Reserved(r.uint8, t => t.length - t._currentOffset)
+  padding: new r.Reserved(
+    r.uint8,
+    /** @param {StructValue} t @returns {number} */
+    t => /** @type {number} */ (t.length) - /** @type {number} */ (t._currentOffset)
+  )
 });
 
 let FeatureEntry = new r.Struct({
@@ -71,6 +77,7 @@ let MorxChain = new r.Struct({
   subtables: new r.Array(Subtable, 'nSubtables')
 });
 
+/** @type {import('restructure').Struct} */
 export default new r.Struct({
   version: r.uint16,
   unused: new r.Reserved(r.uint16),

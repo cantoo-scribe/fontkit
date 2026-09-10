@@ -65,6 +65,7 @@ let Axis = new r.Struct({
   baseScriptList: new r.Pointer(r.uint16, BaseScriptList)
 });
 
+/** @type {import('restructure').VersionedStruct} */
 export default new r.VersionedStruct(r.uint32, {
   header: {
     horizAxis: new r.Pointer(r.uint16, Axis), // May be NULL
