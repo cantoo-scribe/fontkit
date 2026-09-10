@@ -58,14 +58,17 @@
       "default": "./dist/browser-module.mjs"
     },
     "./unicode-trie": {
+      "types": "./src/packages/unicode-trie/dist/index.d.ts",
       "import": "./src/packages/unicode-trie/dist/index.mjs",
       "require": "./src/packages/unicode-trie/dist/index.cjs"
     },
     "./unicode-trie/builder.js": {
+      "types": "./src/packages/unicode-trie/dist/builder.d.ts",
       "import": "./src/packages/unicode-trie/dist/builder.mjs",
       "require": "./src/packages/unicode-trie/dist/builder.cjs"
     },
     "./unicode-properties": {
+      "types": "./src/packages/unicode-properties/dist/index.d.ts",
       "import": "./src/packages/unicode-properties/dist/index.mjs",
       "require": "./src/packages/unicode-properties/dist/index.cjs"
     },

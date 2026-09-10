@@ -13,6 +13,27 @@ function cleanDist(dir) {
   fs.mkdirSync(dist, { recursive: true });
 }
 
+function copyTypes(dir, files) {
+  for (const file of files) {
+    fs.copyFileSync(path.join(dir, file), path.join(dir, 'dist', file));
+  }
+}
+
+function umdFooter(globalName, unwrapDefault) {
+  const unwrap = unwrapDefault
+    ? `${globalName} = ${globalName}.default ?? ${globalName};`
+    : '';
+  return [
+    unwrap,
+    `if (typeof module === "object" && module.exports) {`,
+    `  module.exports = ${globalName};`,
+    `}`,
+    `if (typeof define === "function" && define.amd) {`,
+    `  define(function () { return ${globalName}; });`,
+    `}`
+  ].filter(Boolean).join('\n');
+}
+
 async function buildDual({ dir, entryPoints, platform }) {
   const shared = {
     absWorkingDir: dir,
@@ -45,6 +66,36 @@ async function buildDual({ dir, entryPoints, platform }) {
   ]);
 }
 
+/**
+ * @param {{ dir: string, entry: string, outfile: string, globalName: string, unwrapDefault?: boolean, platform?: string, external?: string[] }} opts
+ */
+async function buildUmd({
+  dir,
+  entry,
+  outfile,
+  globalName,
+  unwrapDefault = false,
+  platform = 'browser',
+  external = ['fflate']
+}) {
+  await esbuild.build({
+    absWorkingDir: dir,
+    entryPoints: [entry],
+    bundle: true,
+    format: 'iife',
+    globalName,
+    platform,
+    target: 'es2020',
+    outfile: path.join(dir, outfile),
+    sourcemap: true,
+    external,
+    logLevel: 'info',
+    footer: {
+      js: umdFooter(globalName, unwrapDefault)
+    }
+  });
+}
+
 cleanDist(trieDir);
 cleanDist(propsDir);
 
@@ -67,4 +118,26 @@ await buildDual({
   platform: 'neutral'
 });
 
-console.log('Built unicode-trie and unicode-properties (esm + cjs)');
+await buildUmd({
+  dir: trieDir,
+  entry: 'index.js',
+  outfile: 'dist/index.umd.js',
+  globalName: 'UnicodeTrie',
+  unwrapDefault: true,
+  // Bundle fflate for a self-contained CDN build.
+  external: []
+});
+
+await buildUmd({
+  dir: propsDir,
+  entry: 'index.js',
+  outfile: 'dist/index.umd.js',
+  globalName: 'unicodeProperties',
+  // Bundle trie + fflate for a self-contained CDN build.
+  external: []
+});
+
+copyTypes(trieDir, ['index.d.ts', 'builder.d.ts']);
+copyTypes(propsDir, ['index.d.ts']);
+
+console.log('Built unicode-trie and unicode-properties (esm + cjs + umd + types)');

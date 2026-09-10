@@ -1,16 +1,21 @@
 {
   "name": "@cantoo/unicode-trie",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Unicode Trie data structure for fast character metadata lookup, ported from ICU (fflate, no tiny-inflate/pako)",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.umd.js",
+  "jsdelivr": "./dist/index.umd.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./builder.js": {
+      "types": "./dist/builder.d.ts",
       "import": "./dist/builder.mjs",
       "require": "./dist/builder.cjs"
     },
@@ -18,6 +23,8 @@
   },
   "files": [
     "dist",
+    "index.d.ts",
+    "builder.d.ts",
     "LICENSE",
     "README.md"
   ],

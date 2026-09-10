@@ -1,12 +1,16 @@
 {
   "name": "@cantoo/unicode-properties",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Fast access to unicode character properties (vendored for @cantoo/fontkit)",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.umd.js",
+  "jsdelivr": "./dist/index.umd.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
@@ -14,6 +18,7 @@
   },
   "files": [
     "dist",
+    "index.d.ts",
     "LICENSE",
     "README.md"
   ],
