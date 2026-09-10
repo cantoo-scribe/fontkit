@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const distRoot = path.join(root, 'dist');
+
+/**
+ * Copy a package's published dist into fontkit's dist/ for clean export paths.
+ * @param {string} name
+ * @param {string} srcDir
+ */
+function mirrorPackage(name, srcDir) {
+  const from = path.join(srcDir, 'dist');
+  const to = path.join(distRoot, name);
+  fs.rmSync(to, { recursive: true, force: true });
+  fs.mkdirSync(to, { recursive: true });
+
+  for (const entry of fs.readdirSync(from)) {
+    fs.copyFileSync(path.join(from, entry), path.join(to, entry));
+  }
+
+  console.log(`Mirrored ${name} -> dist/${name}/`);
+}
+
+mirrorPackage('unicode-trie', path.join(root, 'src/packages/unicode-trie'));
+mirrorPackage('unicode-properties', path.join(root, 'src/packages/unicode-properties'));

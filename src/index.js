@@ -1,4 +1,4 @@
-import { registerFormat } from './base';
+import fontkit, { registerFormat } from './base';
 import TTFFont from './TTFFont';
 import WOFFFont from './WOFFFont';
 import WOFF2Font from './WOFF2Font';
@@ -13,3 +13,4 @@ registerFormat(TrueTypeCollection);
 registerFormat(DFont);
 
 export * from './base';
+export default fontkit;

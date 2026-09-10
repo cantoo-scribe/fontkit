@@ -138,16 +138,15 @@ export interface VariationAxisInfo {
   max: number;
 }
 
-/** Font subset writer. */
+/** Font subset writer (sync encode only in @cantoo/fontkit). */
 export interface Subset {
   includeGlyph(glyph: Glyph | number): number;
-  encodeStream(): unknown;
-  encode(cb?: (err: Error | null, data?: Uint8Array) => void): Promise<Uint8Array> | void;
+  /** Encode the subset as a font buffer (synchronous). */
+  encode(): Uint8Array;
 }
 
 /**
- * An opened font (or a font selected from a collection).
- * Matches the public surface of TTFFont / WOFF / WOFF2 / etc.
+ * An opened single font face (TTF / OTF / WOFF / WOFF2).
  */
 export interface Font {
   type: string;
@@ -193,14 +192,20 @@ export interface Font {
   getGlyph(glyph: number, characters?: number[]): Glyph | null;
   createSubset(): Subset;
   getVariation(variation: string | Record<string, number> | number[]): Font;
-  getFont?(
-    postscriptName: string | Uint8Array | Record<string, number>
-  ): Font | null | undefined;
+}
+
+/**
+ * A TrueType Collection (TTC) or Mac DFont container.
+ */
+export interface FontCollection {
+  type: 'TTC' | 'DFont' | string;
+  readonly fonts: Font[];
+  getFont(postscriptName: string | Uint8Array): Font | null;
 }
 
 /** Constructible font format registered with registerFormat(). */
 export interface FontFormat {
-  new (stream: unknown, variationCoords?: number[] | null): Font;
+  new (stream: unknown, variationCoords?: number[] | null): Font | FontCollection;
   probe(buffer: ArrayBufferView): boolean;
 }
 
@@ -208,23 +213,29 @@ export declare let logErrors: boolean;
 export declare let defaultLanguage: string;
 
 export declare function registerFormat(format: FontFormat): void;
-export declare function create(
-  buffer: ArrayBufferView,
-  postscriptName?: string | Uint8Array
-): Font | null | undefined;
 export declare function setDefaultLanguage(lang?: string): void;
 
+/** Open a font or collection from a buffer (no face selected). */
+export declare function create(buffer: ArrayBufferView): Font | FontCollection;
+/** Open a buffer and select a face by PostScript name. */
+export declare function create(
+  buffer: ArrayBufferView,
+  postscriptName: string | Uint8Array
+): Font | null;
+
 /** Node-only: open a font file asynchronously. */
+export declare function open(filename: string | import('fs').PathLike): Promise<Font | FontCollection>;
 export declare function open(
   filename: string | import('fs').PathLike,
-  postscriptName?: string | Uint8Array
-): Promise<Font | null | undefined>;
+  postscriptName: string | Uint8Array
+): Promise<Font | null>;
 
 /** Node-only: open a font file synchronously. */
+export declare function openSync(filename: string | import('fs').PathLike): Font | FontCollection;
 export declare function openSync(
   filename: string | import('fs').PathLike,
-  postscriptName?: string | Uint8Array
-): Font | null | undefined;
+  postscriptName: string | Uint8Array
+): Font | null;
 
 declare const fontkit: {
   logErrors: boolean;

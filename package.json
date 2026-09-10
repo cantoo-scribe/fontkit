@@ -20,7 +20,8 @@
     "build:packages": "node scripts/build-unicode-packages.js",
     "build:types": "node scripts/build-types.js",
     "build:umd": "node scripts/build-umd.js",
-    "build": "npm run build:packages && tsup && npm run build:umd && npm run build:types",
+    "build:mirror": "node scripts/mirror-unicode-dist.js",
+    "build": "npm run build:packages && tsup && npm run build:umd && npm run build:types && npm run build:mirror",
     "prebuild": "node --input-type=module -e \"import fs from 'node:fs'; if (!fs.existsSync('src/opentype/shapers/data.trie')) { console.error('Missing trie files. Run: npm run tries'); process.exit(1); }\"",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -35,8 +36,8 @@
   "node-module": "dist/module.mjs",
   "browser": "dist/browser.cjs",
   "module": "dist/browser-module.mjs",
-  "unpkg": "dist/fontkit.umd.js",
-  "jsdelivr": "dist/fontkit.umd.js",
+  "unpkg": "dist/fontkit.umd.min.js",
+  "jsdelivr": "dist/fontkit.umd.min.js",
   "types": "dist/index.d.ts",
   "source": "src/index.js",
   "exports": {
@@ -58,19 +59,19 @@
       "default": "./dist/browser-module.mjs"
     },
     "./unicode-trie": {
-      "types": "./src/packages/unicode-trie/dist/index.d.ts",
-      "import": "./src/packages/unicode-trie/dist/index.mjs",
-      "require": "./src/packages/unicode-trie/dist/index.cjs"
+      "types": "./dist/unicode-trie/index.d.ts",
+      "import": "./dist/unicode-trie/index.mjs",
+      "require": "./dist/unicode-trie/index.cjs"
     },
     "./unicode-trie/builder.js": {
-      "types": "./src/packages/unicode-trie/dist/builder.d.ts",
-      "import": "./src/packages/unicode-trie/dist/builder.mjs",
-      "require": "./src/packages/unicode-trie/dist/builder.cjs"
+      "types": "./dist/unicode-trie/builder.d.ts",
+      "import": "./dist/unicode-trie/builder.mjs",
+      "require": "./dist/unicode-trie/builder.cjs"
     },
     "./unicode-properties": {
-      "types": "./src/packages/unicode-properties/dist/index.d.ts",
-      "import": "./src/packages/unicode-properties/dist/index.mjs",
-      "require": "./src/packages/unicode-properties/dist/index.cjs"
+      "types": "./dist/unicode-properties/index.d.ts",
+      "import": "./dist/unicode-properties/index.mjs",
+      "require": "./dist/unicode-properties/index.cjs"
     },
     "./package.json": "./package.json"
   },

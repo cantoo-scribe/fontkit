@@ -46,3 +46,36 @@ export let defaultLanguage = 'en';
 export function setDefaultLanguage(lang = 'en') {
   defaultLanguage = lang;
 };
+
+/**
+ * Default-export namespace (live bindings for mutable flags).
+ * Consumers can use either `import * as fontkit` or `import fontkit from`.
+ * @type {{
+ *   logErrors: boolean,
+ *   defaultLanguage: string,
+ *   registerFormat: typeof registerFormat,
+ *   create: typeof create,
+ *   setDefaultLanguage: typeof setDefaultLanguage,
+ *   open?: typeof import('./fs.js').open,
+ *   openSync?: typeof import('./fs.js').openSync
+ * }}
+ */
+const fontkit = {
+  get logErrors() {
+    return logErrors;
+  },
+  set logErrors(value) {
+    logErrors = value;
+  },
+  get defaultLanguage() {
+    return defaultLanguage;
+  },
+  set defaultLanguage(value) {
+    defaultLanguage = value;
+  },
+  registerFormat,
+  create,
+  setDefaultLanguage
+};
+
+export default fontkit;
