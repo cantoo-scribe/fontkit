@@ -2,15 +2,13 @@
 
 Maintained fork of [foliojs/unicode-trie](https://github.com/foliojs/unicode-trie), published as **`@cantoo/unicode-trie`**.
 
-## Changes in the @cantoo fork
+## What’s improved for users
 
-- Published under the `@cantoo` scope (also re-exported from `@cantoo/fontkit/unicode-trie`)
-- Compression via **fflate** instead of `tiny-inflate` / `pako`
-- Dual **CJS + ESM** builds (`dist/index.cjs` / `.mjs`, plus `builder.js`)
-- **UMD** bundle for CDN (`dist/index.umd.js`, `unpkg` / `jsdelivr`)
-- Public **TypeScript** typings (`dist/index.d.ts`, `dist/builder.d.ts`)
-- CJS `require()` returns the class directly (not `{ default: … }`)
-- Built with the monorepo **tsup** pipeline alongside `@cantoo/fontkit`
+- **TypeScript typings** included for the trie and the builder
+- **CJS + ESM** — works with `require` and `import` (and `require()` gives you the class directly)
+- **CDN / browser** — UMD build on unpkg / jsDelivr
+- **Smaller, modern inflate stack** — uses **fflate** instead of `tiny-inflate` / `pako`
+- Also available as `@cantoo/fontkit/unicode-trie` if you already depend on fontkit
 
 ## Usage
 
@@ -21,5 +19,3 @@ import UnicodeTrieBuilder from '@cantoo/unicode-trie/builder.js';
 // CommonJS
 const UnicodeTrie = require('@cantoo/unicode-trie');
 ```
-
-Also available via `@cantoo/fontkit/unicode-trie` when fontkit is installed (no extra dependency).

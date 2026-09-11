@@ -2,15 +2,13 @@
 
 Maintained fork of [foliojs/unicode-properties](https://github.com/foliojs/unicode-properties), published as **`@cantoo/unicode-properties`**.
 
-## Changes in the @cantoo fork
+## What’s improved for users
 
-- Published under the `@cantoo` scope (also re-exported from `@cantoo/fontkit/unicode-properties`)
-- Built on the vendored `@cantoo/unicode-trie` (bundled into the published `dist`, no separate install required for the properties package itself)
-- Dual **CJS + ESM** builds (`dist/index.cjs` / `.mjs`)
-- **UMD** bundle for CDN (`dist/index.umd.js`, `unpkg` / `jsdelivr`) — self-contained (trie + fflate inlined)
-- Public **TypeScript** typings (`dist/index.d.ts`) with named exports and a matching default export object
-- CJS `require()` returns the API object directly (named helpers on `module.exports`)
-- Built with the monorepo **tsup** pipeline alongside `@cantoo/fontkit`
+- **TypeScript typings** included (named exports + default object)
+- **CJS + ESM** — works with `require` and `import`
+- **CDN / browser** — self-contained UMD build on unpkg / jsDelivr (no extra trie package to load)
+- **One dependency surface** — the trie is bundled in `dist`, so consumers don’t juggle a separate unicode-trie install for this package
+- Also available as `@cantoo/fontkit/unicode-properties` if you already depend on fontkit
 
 ## Usage
 
@@ -20,5 +18,3 @@ import { getCategory, isMark } from '@cantoo/unicode-properties';
 // CommonJS
 const { getCategory, isMark } = require('@cantoo/unicode-properties');
 ```
-
-Also available via `@cantoo/fontkit/unicode-properties` when fontkit is installed (no extra dependency).
