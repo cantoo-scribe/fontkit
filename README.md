@@ -2,6 +2,50 @@
 
 Fontkit is an advanced font engine for Node and the browser, used by [PDFKit](https://github.com/devongovett/pdfkit). It supports many font formats, advanced glyph substitution and layout features, glyph path extraction, color emoji glyphs, font subsetting, and more.
 
+This package is published as **`@cantoo/fontkit`**, a maintained fork of the original [foliojs/fontkit](https://github.com/foliojs/fontkit).
+
+## Changes in the @cantoo fork
+
+Since taking over maintenance, this fork has focused on packaging, typing, reliability, and a lighter toolchain:
+
+### Packaging & distribution
+- Published under the `@cantoo` scope (`@cantoo/fontkit`)
+- Modern dual builds (CJS + ESM) for Node and the browser via **tsup**
+- UMD / IIFE bundles for CDN use (`dist/fontkit.umd.js` and minified), wired to `unpkg` / `jsdelivr`
+- Real **default export** aligned with named exports (`import fontkit from` and `import * as fontkit`)
+- Cleaner `package.json` `exports` (including `types` conditions)
+- Vendored unicode helpers as scoped packages, also re-exported as:
+  - `@cantoo/fontkit/unicode-trie`
+  - `@cantoo/fontkit/unicode-properties`
+  (paths under `dist/…`, not `src/packages/…`)
+
+### TypeScript
+- Public typings shipped with the package (`dist/index.d.ts`) — `@types/fontkit` no longer required
+- Full JSDoc + `checkJs` across the codebase (strict, no `any`)
+- Accurate public types for:
+  - `Subset.encode(): Uint8Array` (sync; no fake `encodeStream`)
+  - `FontCollection` (`fonts`, `getFont`) for TTC / DFont
+  - `create` / `open` / `openSync` overloads (`Font | FontCollection` vs face selection)
+
+### Bug fixes & correctness
+- Richer font / glyph metrics (from upstream PR #307)
+- COLR / CBDT emoji crash fixes (from upstream PR #366)
+- `getVariation()` fixed for WOFF and WOFF2
+- Additional fixes found via typing, including among others:
+  - Path bounding-box coefficient overwrite
+  - Mongolian / OT chaining edge cases
+  - Cmap format 2 / 10 length bugs
+  - WOFF2 `_dataPos` wiped after `super()`
+  - CFF encode / private-dict sizing bugs
+  - Null `getGlyph` guards in AAT / OT / shapers
+  - Glyph variation `readUInt16BE` endianness
+
+### Tooling & dependencies
+- Replaced legacy `@cache` decorators with `defineCached` (WeakMap memoization) — no Babel for ESLint
+- Removed runtime deps `clone` and `fast-deep-equal` (small local helpers)
+- Dropped unused tooling (`shx`, `@vitest/coverage-v8`, Babel ESLint stack)
+- Builds (including UMD and unicode subpackages) run through **tsup** only; no direct `esbuild` dependency
+
 ## Features
 
 * Supports TrueType (.ttf), OpenType (.otf), WOFF, WOFF2, TrueType Collection (.ttc), and Datafork TrueType (.dfont) font files

@@ -15,6 +15,37 @@ const shared = {
   }
 };
 
+const umdFooter = [
+  'fontkit = fontkit.default ?? fontkit;',
+  'if (typeof module === "object" && module.exports) {',
+  '  module.exports = fontkit;',
+  '}',
+  'if (typeof define === "function" && define.amd) {',
+  '  define(function () { return fontkit; });',
+  '}'
+].join('\n');
+
+/**
+ * @param {{ minify?: boolean, entryName: string }} opts
+ */
+function umdBuild({ minify = false, entryName }) {
+  return {
+    ...shared,
+    entry: { [entryName]: 'src/index.js' },
+    format: ['iife'],
+    globalName: 'fontkit',
+    platform: 'browser',
+    minify,
+    outExtension() {
+      return { js: '.js' };
+    },
+    esbuildOptions(options) {
+      shared.esbuildOptions(options);
+      options.footer = { js: umdFooter };
+    }
+  };
+}
+
 export default defineConfig([
   {
     ...shared,
@@ -51,5 +82,7 @@ export default defineConfig([
     outExtension() {
       return { js: '.mjs' };
     }
-  }
+  },
+  umdBuild({ entryName: 'fontkit.umd' }),
+  umdBuild({ entryName: 'fontkit.umd.min', minify: true })
 ]);

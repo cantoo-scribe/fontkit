@@ -19,9 +19,8 @@
     "tries": "npm run trie:data && npm run trie:use && npm run trie:indic",
     "build:packages": "node scripts/build-unicode-packages.js",
     "build:types": "node scripts/build-types.js",
-    "build:umd": "node scripts/build-umd.js",
     "build:mirror": "node scripts/mirror-unicode-dist.js",
-    "build": "npm run build:packages && tsup && npm run build:umd && npm run build:types && npm run build:mirror",
+    "build": "npm run build:packages && tsup && npm run build:types && npm run build:mirror",
     "prebuild": "node --input-type=module -e \"import fs from 'node:fs'; if (!fs.existsSync('src/opentype/shapers/data.trie')) { console.error('Missing trie files. Run: npm run tries'); process.exit(1); }\"",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -99,15 +98,11 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.5.0",
     "codepoints": "^1.3.0",
-    "esbuild": "^0.28.2",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
     "release-it": "^21.0.2",
     "tsup": "^8.5.1",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
-  },
-  "overrides": {
-    "esbuild": "^0.28.2"
   }
 }
