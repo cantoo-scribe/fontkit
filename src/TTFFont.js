@@ -1,4 +1,4 @@
-import { cache } from './decorators';
+import { defineCached } from './decorators';
 import * as fontkit from './base';
 import * as r from 'restructure';
 import Directory from './tables/directory';
@@ -455,7 +455,6 @@ export default class TTFFont {
    * The font’s bounding box, i.e. the box that encloses all glyphs in the font.
    * @type {BBox}
    */
-  @cache
   get bbox() {
     return Object.freeze(new BBox(this.head.xMin, this.head.yMin, this.head.xMax, this.head.yMax));
   }
@@ -463,7 +462,6 @@ export default class TTFFont {
   /**
    * @type {CmapProcessor}
    */
-  @cache
   get _cmapProcessor() {
     return new CmapProcessor(/** @type {CmapTable} */ (this.cmap));
   }
@@ -472,7 +470,6 @@ export default class TTFFont {
    * An array of all of the unicode code points supported by the font.
    * @type {number[]}
    */
-  @cache
   get characterSet() {
     return this._cmapProcessor.getCharacterSet();
   }
@@ -560,7 +557,6 @@ export default class TTFFont {
   /**
    * @type {LayoutEngine}
    */
-  @cache
   get _layoutEngine() {
     return new LayoutEngine(this);
   }
@@ -679,7 +675,6 @@ export default class TTFFont {
    *
    * @type {Record<string, VariationAxisInfo>}
    */
-  @cache
   get variationAxes() {
     /** @type {Record<string, VariationAxisInfo>} */
     let res = {};
@@ -706,7 +701,6 @@ export default class TTFFont {
    *
    * @type {Record<string, Record<string, number>>}
    */
-  @cache
   get namedVariations() {
     /** @type {Record<string, Record<string, number>>} */
     let res = {};
@@ -774,9 +768,9 @@ export default class TTFFont {
       maybeDecompress.call(this);
     }
 
-    // Preserve subclass (WOFF/WOFF2) and share decoded state. @cache values and
-    // table getters are non-enumerable, so Object.assign skips them; we reinstall
-    // getters and clear the glyph cache for this variation instance.
+    // Preserve subclass (WOFF/WOFF2) and share decoded state. Cached getters use a
+    // WeakMap (not own enumerable props), so Object.assign skips them; we reinstall
+    // table getters and clear the glyph cache for this variation instance.
     let font = Object.create(Object.getPrototypeOf(this));
     Object.assign(font, this);
     font.variationCoords = coords;
@@ -788,7 +782,6 @@ export default class TTFFont {
   /**
    * @type {GlyphVariationProcessor | null}
    */
-  @cache
   get _variationProcessor() {
     if (!this.fvar) {
       return null;
@@ -817,3 +810,13 @@ export default class TTFFont {
     return this.getVariation(/** @type {string | Record<string, number>} */ (name));
   }
 }
+
+defineCached(TTFFont.prototype, [
+  'bbox',
+  '_cmapProcessor',
+  'characterSet',
+  '_layoutEngine',
+  'variationAxes',
+  'namedVariations',
+  '_variationProcessor'
+]);

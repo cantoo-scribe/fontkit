@@ -1,4 +1,4 @@
-import { cache } from '../decorators';
+import { defineCached } from '../decorators';
 import { range } from '../utils';
 
 /** @typedef {import('../../types/fontkit').AATLookupTableData} AATLookupTableData */
@@ -90,7 +90,6 @@ export default class AATLookupTable {
    * @param {number} classValue
    * @returns {number[]}
    */
-  @cache
   glyphsForValue(classValue) {
     /** @type {number[]} */
     let res = [];
@@ -141,3 +140,5 @@ export default class AATLookupTable {
     return res;
   }
 }
+
+defineCached(AATLookupTable.prototype, ['glyphsForValue']);

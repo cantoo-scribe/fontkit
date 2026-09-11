@@ -1,7 +1,7 @@
-import cloneDeep from 'clone';
 import Subset from './Subset';
 import Directory from '../tables/directory';
 import TTFGlyphEncoder from '../glyph/TTFGlyphEncoder';
+import { cloneDeep } from '../utils';
 
 /** @typedef {import('../../types/fontkit').SubsetFont} SubsetFont */
 /** @typedef {import('../../types/fontkit').DecodedGlyf} DecodedGlyf */

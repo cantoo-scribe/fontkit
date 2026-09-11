@@ -1,6 +1,6 @@
 import { binarySearch } from './utils';
 import { getEncoding, getEncodingMapping } from './encodings';
-import { cache } from './decorators';
+import { defineCached } from './decorators';
 import { range } from './utils';
 
 /** @typedef {import('../types/fontkit').CmapTable} CmapTable */
@@ -203,7 +203,6 @@ export default class CmapProcessor {
   /**
    * @returns {number[]}
    */
-  @cache
   getCharacterSet() {
     let cmap = this.cmap;
     switch (cmap.version) {
@@ -251,7 +250,6 @@ export default class CmapProcessor {
    * @param {number} gid
    * @returns {number[]}
    */
-  @cache
   codePointsForGlyph(gid) {
     let cmap = this.cmap;
     switch (cmap.version) {
@@ -322,3 +320,8 @@ export default class CmapProcessor {
     }
   }
 }
+
+defineCached(CmapProcessor.prototype, [
+  'getCharacterSet',
+  'codePointsForGlyph'
+]);

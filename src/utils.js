@@ -38,6 +38,69 @@ export function range(index, end) {
 
 export const asciiDecoder = new TextDecoder('ascii');
 
+/**
+ * Deep-clone plain JSON-like values (font table structs).
+ * @template T
+ * @param {T} value
+ * @returns {T}
+ */
+export function cloneDeep(value) {
+  return structuredClone(value);
+}
+
+/**
+ * Deep equality for CFF default-value checks (primitives, arrays, plain objects).
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
+export function deepEqual(a, b) {
+  if (a === b) {
+    return true;
+  }
+
+  if (a == null || b == null || typeof a !== typeof b) {
+    return false;
+  }
+
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (typeof a === 'object') {
+    if (typeof b !== 'object' || Array.isArray(b)) {
+      return false;
+    }
+    let aKeys = Object.keys(/** @type {object} */ (a));
+    let bKeys = Object.keys(/** @type {object} */ (b));
+    if (aKeys.length !== bKeys.length) {
+      return false;
+    }
+    for (let key of aKeys) {
+      if (
+        !Object.prototype.hasOwnProperty.call(b, key)
+        || !deepEqual(
+          /** @type {Record<string, unknown>} */ (a)[key],
+          /** @type {Record<string, unknown>} */ (b)[key]
+        )
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
 // Based on https://github.com/niklasvh/base64-arraybuffer. MIT license.
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const LOOKUP = new Uint8Array(256);

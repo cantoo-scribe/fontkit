@@ -1,5 +1,4 @@
 import js from '@eslint/js';
-import babelParser from '@babel/eslint-parser';
 import stylistic from '@stylistic/eslint-plugin';
 import globals from 'globals';
 
@@ -31,13 +30,6 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
-      parser: babelParser,
-      parserOptions: {
-        requireConfigFile: false,
-        babelOptions: {
-          plugins: [['@babel/plugin-proposal-decorators', { version: 'legacy' }]]
-        }
-      },
       globals: {
         ...globals.node
       }

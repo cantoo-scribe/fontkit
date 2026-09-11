@@ -1,6 +1,6 @@
 import AATStateMachine from './AATStateMachine';
 import AATLookupTable from './AATLookupTable';
-import { cache } from '../decorators';
+import { defineCached } from '../decorators';
 
 /** @typedef {import('../../types/fontkit').LayoutFont} LayoutFont */
 /** @typedef {import('../../types/fontkit').LayoutGlyph} LayoutGlyph */
@@ -150,7 +150,6 @@ export default class AATMorxProcessor {
    * @param {MorxSubtable} subtable
    * @returns {AATStateMachine}
    */
-  @cache
   getStateMachine(subtable) {
     return new AATStateMachine(/** @type {import('../../types/fontkit').AATStateTable} */ (subtable.table.stateTable));
   }
@@ -473,6 +472,8 @@ export default class AATMorxProcessor {
     });
   }
 }
+
+defineCached(AATMorxProcessor.prototype, ['getStateMachine']);
 
 /**
  * swaps the glyphs in rangeA with those in rangeB

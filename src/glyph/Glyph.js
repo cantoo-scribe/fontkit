@@ -1,4 +1,4 @@
-import { cache } from '../decorators';
+import { defineCached } from '../decorators';
 import Path from './Path';
 import { isMark } from '../packages/unicode-properties/index.js';
 import StandardNames from './StandardNames';
@@ -139,7 +139,6 @@ export default class Glyph {
    *
    * @type {BBox}
    */
-  @cache
   get cbox() {
     return this._getCBox();
   }
@@ -149,7 +148,6 @@ export default class Glyph {
    * glyph outline as tightly as possible.
    * @type {BBox}
    */
-  @cache
   get bbox() {
     return this._getBBox();
   }
@@ -158,7 +156,6 @@ export default class Glyph {
    * A vector Path object representing the glyph outline.
    * @type {Path}
    */
-  @cache
   get path() {
     // Cache the path so we only decode it once
     // Decoding is actually performed by subclasses
@@ -179,7 +176,6 @@ export default class Glyph {
    * The glyph's width.
    * @type {number}
    */
-  @cache
   get width() {
     return this._getMetrics().width;
   }
@@ -188,7 +184,6 @@ export default class Glyph {
    * The glyph's height.
    * @type {number}
    */
-  @cache
   get height() {
     return this._getMetrics().height;
   }
@@ -197,7 +192,6 @@ export default class Glyph {
    * The glyph's advance width.
    * @type {number}
    */
-  @cache
   get advanceWidth() {
     return this._getMetrics().advanceWidth;
   }
@@ -206,7 +200,6 @@ export default class Glyph {
    * The glyph's advance height.
    * @type {number}
    */
-  @cache
   get advanceHeight() {
     return this._getMetrics().advanceHeight;
   }
@@ -215,7 +208,6 @@ export default class Glyph {
    * The glyph's left side bearing.
    * @type {number}
    */
-  @cache
   get leftBearing() {
     return this._getMetrics().leftBearing;
   }
@@ -224,7 +216,6 @@ export default class Glyph {
    * The glyph's top side bearing.
    * @type {number}
    */
-  @cache
   get topBearing() {
     return this._getMetrics().topBearing;
   }
@@ -233,7 +224,6 @@ export default class Glyph {
    * The glyph's right side bearing.
    * @type {number}
    */
-  @cache
   get rightBearing() {
     return this._getMetrics().rightBearing;
   }
@@ -242,7 +232,6 @@ export default class Glyph {
    * The glyph's bottom side bearing.
    * @type {number}
    */
-  @cache
   get bottomBearing() {
     return this._getMetrics().bottomBearing;
   }
@@ -303,7 +292,6 @@ export default class Glyph {
    * The glyph's name
    * @type {string | null | undefined}
    */
-  @cache
   get name() {
     return this._getName();
   }
@@ -327,3 +315,18 @@ export default class Glyph {
     ctx.restore();
   }
 }
+
+defineCached(Glyph.prototype, [
+  'cbox',
+  'bbox',
+  'path',
+  'width',
+  'height',
+  'advanceWidth',
+  'advanceHeight',
+  'leftBearing',
+  'topBearing',
+  'rightBearing',
+  'bottomBearing',
+  'name'
+]);

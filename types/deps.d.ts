@@ -27,13 +27,6 @@ declare module 'brotli/decompress.js' {
   export default function decompress(buffer: Uint8Array, outputSize?: number): Uint8Array | null;
 }
 
-declare module 'clone' {
-  /**
-   * Deep-clone a value.
-   */
-  export default function cloneDeep<T>(value: T): T;
-}
-
 declare module 'dfa' {
   /**
    * Compiled DFA payload (from `dfa/compile`). Matches runtime `node_modules/dfa`:
@@ -70,10 +63,6 @@ declare module 'dfa' {
       >
     ): void;
   }
-}
-
-declare module 'fast-deep-equal' {
-  export default function equal(a: unknown, b: unknown): boolean;
 }
 
 declare module 'fflate' {

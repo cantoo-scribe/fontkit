@@ -1,55 +1,90 @@
 /**
- * Cache decorator for getters/methods.
- * Results are lazily computed once, then cached on the instance.
+ * Per-instance memoization for prototype getters and methods.
+ * Replaces the former `@cache` decorator (no Babel required).
  *
- * @template T
- * @param {object} target
- * @param {string} key
- * @param {TypedPropertyDescriptor<T>} descriptor
- * @returns {TypedPropertyDescriptor<T> | void}
+ * - Getters: computed once per instance.
+ * - Methods: memoized by the first argument (same as legacy `@cache`).
+ *
+ * Values are stored in a WeakMap, so they do not collide with instance fields.
  */
-export function cache(target, key, descriptor) {
-  if (descriptor.get) {
-    let get = descriptor.get;
-    descriptor.get = function () {
-      let value = get.call(this);
-      Object.defineProperty(this, key, { value });
-      return value;
-    };
-    return;
+
+/** @type {WeakMap<object, Map<string | symbol, unknown>>} */
+const store = new WeakMap();
+
+/**
+ * @param {object} instance
+ * @returns {Map<string | symbol, unknown>}
+ */
+function cacheMap(instance) {
+  let map = store.get(instance);
+  if (!map) {
+    map = new Map();
+    store.set(instance, map);
   }
+  return map;
+}
 
-  if (typeof descriptor.value === 'function') {
-    let fn = /** @type {(...args: unknown[]) => T} */ (descriptor.value);
+/**
+ * Wrap existing prototype properties with memoization.
+ * @param {object} proto
+ * @param {string[]} keys
+ * @returns {void}
+ */
+export function defineCached(proto, keys) {
+  for (let key of keys) {
+    let desc = Object.getOwnPropertyDescriptor(proto, key);
+    if (!desc) {
+      throw new Error(`defineCached: missing property "${key}"`);
+    }
 
-    /** @type {TypedPropertyDescriptor<T>} */
-    let replacement = {
-      configurable: true,
-      enumerable: false,
-      get() {
-        /** @type {Map<unknown, T>} */
-        let cacheMap = new Map();
+    if (desc.get) {
+      let compute = desc.get;
+      Object.defineProperty(proto, key, {
+        configurable: true,
+        enumerable: false,
+        get() {
+          let map = cacheMap(this);
+          if (!map.has(key)) {
+            map.set(key, compute.call(this));
+          }
+          return map.get(key);
+        }
+      });
+      continue;
+    }
 
+    if (typeof desc.value === 'function') {
+      let fn = desc.value;
+      Object.defineProperty(proto, key, {
+        configurable: true,
+        enumerable: false,
+        writable: true,
         /**
          * @param {...unknown} args
-         * @returns {T}
+         * @returns {unknown}
          */
-        let memoized = (...args) => {
+        value: function (...args) {
+          let map = cacheMap(this);
+          /** @type {Map<unknown, unknown> | undefined} */
+          let methodCache = /** @type {Map<unknown, unknown> | undefined} */ (map.get(key));
+          if (!methodCache) {
+            methodCache = new Map();
+            map.set(key, methodCache);
+          }
+
           let cacheKey = args.length > 0 ? args[0] : 'value';
-          if (cacheMap.has(cacheKey)) {
-            return /** @type {T} */ (cacheMap.get(cacheKey));
+          if (methodCache.has(cacheKey)) {
+            return methodCache.get(cacheKey);
           }
 
           let result = fn.apply(this, args);
-          cacheMap.set(cacheKey, result);
+          methodCache.set(cacheKey, result);
           return result;
-        };
+        }
+      });
+      continue;
+    }
 
-        Object.defineProperty(this, key, { value: memoized });
-        return /** @type {T} */ (/** @type {unknown} */ (memoized));
-      }
-    };
-
-    return replacement;
+    throw new Error(`defineCached: "${key}" must be a getter or method`);
   }
 }

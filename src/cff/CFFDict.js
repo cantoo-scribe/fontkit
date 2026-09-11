@@ -1,6 +1,6 @@
-import isEqual from 'fast-deep-equal';
 import CFFOperand from './CFFOperand';
 import { PropertyDescriptor } from 'restructure';
+import { deepEqual } from '../utils';
 
 /** @typedef {import('restructure').BaseType} BaseType */
 /** @typedef {import('restructure').DecodeStream} DecodeStream */
@@ -168,7 +168,7 @@ export default class CFFDict {
     for (let k in this.fields) {
       let field = this.fields[k];
       let val = dict[field[1]];
-      if (val == null || isEqual(val, field[3])) {
+      if (val == null || deepEqual(val, field[3])) {
         continue;
       }
 
@@ -208,7 +208,7 @@ export default class CFFDict {
 
     for (let field of this.ops) {
       let val = dict[field[1]];
-      if (val == null || isEqual(val, field[3])) {
+      if (val == null || deepEqual(val, field[3])) {
         continue;
       }
 
